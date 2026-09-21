@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vanilla JavaScript Game Starter Kit</title>
+  <link rel="stylesheet" href="src/main.css">
+</head>
+
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <!-- Timer -->
+      <div id="timer">00:00</div>
+      <!-- Healthbar -->
+      <div id="healthBarContainer">
+        <div id="healthBarFill"></div>
+      </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" class="ui-panel">
+      <h1>Game Starter Kit</h1>
+      <button type="button" data-action="start">START GAME</button>
+      <div style="margin-top: 20px; font-size: 12px;">
+        <div>WASD - Move</div>
+        <div>ESC - Pause</div>
+      </div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pauseMenu" class="ui-panel">
+      <h2>PAUSED</h2>
+      <button type="button" data-action="resume">RESUME GAME</button>
+      <button type="button" data-action="quit">RETURN TO MAIN MENU</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverMenu" class="ui-panel">
+      <h1>Game Over</h1>
+      <button type="button" data-action="start">RESTART GAME</button>
+      <button type="button" data-action="quit">QUIT GAME</button>
+    </div>
+
+    <!-- Mission Complete Screen -->
+    <div id="missionCompleteMenu" class="ui-panel">
+      <h1>Mission Complete</h1>
+      <button type="button" data-action="start">PLAY AGAIN</button>
+      <button type="button" data-action="quit">RETURN TO MAIN MENU</button>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="ui-panel active">
+      <h2>Loading...</h2>
+      <p>Preparing assets...</p>
+    </div>
+  </div>
+
+  <script type="module" src="src/index.ts"></script>
+</body>
+
+</html>
