@@ -1,6 +1,6 @@
-import type { EnemyConfig, EnemyData, EnemyType, GetBehaviorFromEnemy } from "@/types/enemies";
+import type { EnemiesConfig, EnemyConfig, EnemyType, GetBehaviorFromEnemy } from "@/types/enemies";
 import type { Behavior } from "@/types/enemyBehaviors";
-import type { BehaviorArgsMap } from "@/types/enemyBehaviors";
+import type { EnemyBehaviorArgsMap } from "@/types/enemyBehaviors";
 import { Direction, type DirectionVector, type Movable } from "@/types/properties";
 import {
   GAME_WIDTH,
@@ -12,8 +12,8 @@ import enemyData from "@/data/enemyData";
 
 export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Movable {
   type: TEnemy;
-  behavior: Behavior<this, BehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]>;
-  readonly data: EnemyData<GetBehaviorFromEnemy<TEnemy>, TEnemy>;
+  behavior: Behavior<this, EnemyBehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]>;
+  readonly data: EnemyConfig<GetBehaviorFromEnemy<TEnemy>, TEnemy>;
 
   flipHorizontal = false;
   orientation: Direction = Direction.Right;
@@ -48,10 +48,10 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
 
   constructor(
     enemyType: TEnemy,
-    behavior: Behavior<Enemy<TEnemy>, BehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]>,
-    overrides: Partial<EnemyData<GetBehaviorFromEnemy<TEnemy>, TEnemy>> = {}
+    behavior: Behavior<Enemy<TEnemy>, EnemyBehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]>,
+    overrides: Partial<EnemyConfig<GetBehaviorFromEnemy<TEnemy>, TEnemy>> = {}
   ) {
-    const DEFAULT_CONFIG: EnemyConfig[TEnemy] = enemyData[enemyType];
+    const DEFAULT_CONFIG: EnemiesConfig[TEnemy] = enemyData[enemyType];
 
     this.data = {
       ...DEFAULT_CONFIG,
@@ -104,7 +104,7 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
 
   update(
     deltaTime: number,
-    ...args: BehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]
+    ...args: EnemyBehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]
   ) {
     if (!this.active) return;
 

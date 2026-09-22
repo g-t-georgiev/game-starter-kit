@@ -1,4 +1,6 @@
-import type { Movable, Transform } from "./properties";
+import type SeekBehavior from "@/entities/behaviors/enemies/SeekBehavior";
+import type { Movable, Transform } from "@/types/properties";
+import type DriftBehavior from "@/entities/behaviors/enemies/DriftBehavior";
 
 export type EnemyBehaviorType =
   | "seek"
@@ -23,7 +25,32 @@ export interface DriftBehaviorConfig {
   changeInterval: number;
 };
 
-export type BehaviorArgsMap = {
+export type EnemyBehaviorArgsMap = {
   seek: [target: Transform];
   drift: [];
+};
+
+/** Maps behavior types to their instantiated class types */
+export interface EnemyBehaviorMap<
+  TSource extends Movable = Movable,
+  TTarget extends Transform = Transform
+> {
+  seek: SeekBehavior<TSource, TTarget>;
+  drift: DriftBehavior<TSource>;
+}
+
+/** Maps behavior types to their respective config options */
+export interface EnemyBehaviorConfigMap {
+  seek: Partial<SeekBehaviorConfig>;
+  drift: Partial<DriftBehaviorConfig>;
+}
+
+/** Registry mapping behavior keys to creator functions */
+export type EnemyBehaviorRegistry = {
+  [K in EnemyBehaviorType]: <
+    TSource extends Movable,
+    TTarget extends Transform
+  >(
+    options?: EnemyBehaviorConfigMap[K]
+  ) => EnemyBehaviorMap<TSource, TTarget>[K];
 };

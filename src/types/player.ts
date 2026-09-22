@@ -1,6 +1,6 @@
-import type { EntityData } from "./properties";
+import type { EntityConfig } from "@/types/properties";
 
-export interface PlayerData extends EntityData {
+export interface PlayerConfig extends EntityConfig {
   collisionDamage: number;
   strokeColor: string;
 }

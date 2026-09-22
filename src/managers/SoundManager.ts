@@ -9,13 +9,15 @@ export default class SoundManager {
 
   constructor(eventEmitter: EventEmitter) {
     this.eventEmitter = eventEmitter;
-    this._attachEventListeners();
+    this._attachEventListeners(this.eventEmitter);
   }
 
-  _attachEventListeners() {
-    this.eventEmitter.on(EVENTS.SOUND_PLAY, this._onGenericSoundPlay);
-    this.eventEmitter.on(EVENTS.ENEMY_DAMAGED, this._onEnemyDamageSoundPlay);
-    this.eventEmitter.on(EVENTS.ENEMY_DIED, this._onEnemyDieSoundPlay);
+  private _attachEventListeners(eventEmitter: EventEmitter) {
+    if (!eventEmitter) return;
+
+    eventEmitter.on(EVENTS.SOUND_PLAY, this._onGenericSoundPlay);
+    eventEmitter.on(EVENTS.ENEMY_DAMAGED, this._onEnemyDamageSoundPlay);
+    eventEmitter.on(EVENTS.ENEMY_DIED, this._onEnemyDieSoundPlay);
   }
 
   load(name: string, path: string) {
@@ -76,18 +78,25 @@ export default class SoundManager {
     return Promise.all(audioData.map(({ name, path }) => this.load(name, `${SOUND_ASSETS_DIR}/${path}`)));
   }
 
-  _onGenericSoundPlay = (name: string): void => {
+  private _onGenericSoundPlay = (name: string): void => {
     this.play(name);
   };
 
-  _onEnemyDamageSoundPlay = (enemy: Enemy): void => {
-    this.play(enemy.data.sounds?.hit);
+  private _onEnemyDamageSoundPlay = (enemy: Enemy): void => {
+    const { soundEffects } = enemy.data;
+    const sound = soundEffects?.hit;
+
+    if (!sound) return;
+
+    this.play(sound);
   };
 
-  /**
-   * @param {import("../entities/Enemy.js").default} enemy
-   */
-  _onEnemyDieSoundPlay = (enemy: Enemy) => {
-    this.play(enemy.data.sounds?.death);
+  private _onEnemyDieSoundPlay = (enemy: Enemy) => {
+    const { soundEffects } = enemy.data;
+    const sound = soundEffects?.death;
+
+    if (!sound) return;
+
+    this.play(sound);
   };
 }

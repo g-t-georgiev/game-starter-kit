@@ -1,4 +1,4 @@
-import type { PlayerData } from "@/types/player.js";
+import type { PlayerConfig } from "@/types/player.js";
 import { GAME_WIDTH, GAME_HEIGHT, PUSHBACK_DECAY } from "@/core/constants";
 import playerData from "@/data/playerData";
 import { Direction, type DirectionVector, type Movable } from "@/types/properties";
@@ -36,11 +36,11 @@ export default class Player implements Movable {
   health: number;
   maxHealth: number;
 
-  readonly data: PlayerData = {
+  readonly data: PlayerConfig = {
     ...playerData,
   };
 
-  constructor(overrides: Partial<PlayerData> = {}) {
+  constructor(overrides: Partial<PlayerConfig> = {}) {
     Object.assign(this.data, overrides);
 
     this.width = this.data.width;

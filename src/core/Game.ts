@@ -23,6 +23,7 @@ import SoundManager from "@/managers/SoundManager";
 import EnemyManager from "@/managers/EnemyManager";
 import EnemySpawner from "@/managers/EnemySpawner";
 import CollisionManager from "@/managers/CollisionManager";
+import ParticleManager from "@/managers/ParticleManager";
 
 import Player from "@/entities/Player";
 
@@ -38,6 +39,7 @@ export default class Game {
   renderSystem: RenderSystem;
   collisionSystem: CollisionSystem;
   collisionManager: CollisionManager;
+  particlesManager: ParticleManager;
   player: Player;
   lastTime = 0;
   accumulatedTime = 0;
@@ -54,6 +56,7 @@ export default class Game {
     this.uiManager = new UIManager(GlobalEventEmitter);
     this.enemyManager = new EnemyManager();
     this.enemySpawner = new EnemySpawner(this.enemyManager);
+    this.particlesManager = new ParticleManager(GlobalEventEmitter);
 
     this.renderSystem = new RenderSystem(this.canvas, this.imageManager);
 
@@ -179,6 +182,7 @@ export default class Game {
     this.checkMissionConditions();
 
     const activeEnemies = [...this.enemyManager.getActive()];
+    const activeParticle = [...this.particlesManager.getActive()];
 
     this.update(deltaTime, activeEnemies);
 
@@ -186,6 +190,7 @@ export default class Game {
       this.state,
       this.player,
       activeEnemies,
+      activeParticle,
       this.debug
     );
   };
@@ -203,6 +208,8 @@ export default class Game {
 
     this.enemyManager.reset();
     this.enemySpawner.reset();
+
+    this.particlesManager.reset();
 
     this.enemiesKilled = 0;
 
@@ -222,6 +229,7 @@ export default class Game {
 
     this.enemyManager.update(deltaTime, this.player);
     this.enemySpawner.update(deltaTime);
+    this.particlesManager.update(deltaTime);
   }
 
   pause(): void {

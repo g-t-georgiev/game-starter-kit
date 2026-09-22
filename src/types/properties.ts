@@ -1,6 +1,9 @@
-export interface Transform {
+export interface Position {
   x: number;
   y: number;
+};
+
+export interface Transform extends Position {
   width: number;
   height: number;
 };
@@ -13,7 +16,7 @@ export interface CircularCollider extends Transform {
   collisionRadius: number;
 };
 
-export interface EntityData {
+export interface EntityConfig {
   width: number;
   height: number;
   speed: number;

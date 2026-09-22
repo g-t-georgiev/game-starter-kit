@@ -1,12 +1,12 @@
-import type { EnemyTypes as TEnemyTypes, EnemyConfig } from "../types/enemies";
+import type { EnemyTypes as TEnemyTypes, EnemiesConfig } from "@/types/enemies";
 
 export const EnemyTypes: TEnemyTypes = {
   Drifter: "drifter",
   Seeker: "seeker",
 };
 
-export default Object.freeze({
-  drifter: Object.freeze({
+export default {
+  drifter: {
     // Dimensions
     width: 48,
     height: 48,
@@ -26,12 +26,16 @@ export default Object.freeze({
     imageName: "enemy_drifter",
     imagePath: "enemy_drifter.png",
     // Sounds
-    sounds: {
+    soundEffects: {
       hit: "enemy_drifter_hit",
       death: "enemy_drifter_death",
-    }
-  } as const),
-  seeker: Object.freeze({
+    },
+    particleEffects: {
+      hit: "smoke",
+      death: "sparks",
+    },
+  } as const,
+  seeker: {
     // Dimensions
     width: 38,
     height: 25,
@@ -51,9 +55,13 @@ export default Object.freeze({
     imageName: "enemy_seeker",
     imagePath: "enemy_seeker.png",
     // Sounds
-    sounds: {
+    soundEffects: {
       hit: "enemy_seeker_hit",
       death: "enemy_seeker_death",
-    }
-  } as const),
-}) satisfies EnemyConfig;
+    },
+    particleEffects: {
+      hit: "sparks",
+      death: "sparks",
+    },
+  } as const,
+} satisfies EnemiesConfig;

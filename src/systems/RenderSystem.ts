@@ -17,6 +17,7 @@ import {
   // PUSHBACK_DECAY,
   type GameState,
 } from "@/core/constants";
+import type Particle from "@/entities/Particle";
 
 export default class RenderSystem {
   private context: CanvasRenderingContext2D;
@@ -33,6 +34,7 @@ export default class RenderSystem {
     state: GameState,
     player: Player,
     enemies: Enemy[],
+    particles: Particle[],
     debug: boolean = false
   ): void {
     if (state === GAME_STATES.MENU) {
@@ -48,6 +50,7 @@ export default class RenderSystem {
     this.renderGrid();
     this.renderPlayer(player);
     this.renderEnemies(enemies);
+    this.renderParticles(particles);
 
     if (debug) this.renderDebugOverlay(player, enemies);
   }
@@ -79,6 +82,21 @@ export default class RenderSystem {
     }
 
     this.context.globalAlpha = 1;
+  }
+
+  renderParticles(particles: Particle[]) {
+    for (const particle of particles) {
+      if (!particle.active) continue;
+
+      const x = particle.x - particle.size / 2;
+      const y = particle.y - particle.size / 2;
+
+      this.context.save();
+      this.context.fillStyle = particle.color;
+      this.context.globalAlpha = particle.opacity;
+      this.context.fillRect(x, y, particle.size, particle.size);
+      this.context.restore();
+    }
   }
 
   renderEnemies(enemies: Enemy[]): void {
@@ -164,7 +182,7 @@ export default class RenderSystem {
     }
   }
 
-  _drawHitBox(entity: Player | Enemy, stroke = "#008000", fill?: string): void {
+  private _drawHitBox(entity: Player | Enemy, stroke = "#008000", fill?: string): void {
     this.context.save();
 
     this.context.lineWidth = 2;

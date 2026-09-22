@@ -2,8 +2,9 @@ import enemyData from "@/data/enemyData";
 import Enemy from "@/entities/Enemy";
 import ObjectPooler from "@/utils/ObjectPooler";
 import EnemyBehaviorFactory from "@/entities/behaviors/enemies/EnemyBehaviorFactory";
-import type { EnemyConfig, EnemyType } from "@/types/enemies";
+import type { EnemiesConfig, EnemyType } from "@/types/enemies";
 import type Player from "@/entities/Player";
+import { ENEMY_SPAWN_COUNT } from "@/core/constants";
 
 type EnemyPools = Record<EnemyType, ObjectPooler<Enemy>>;
 
@@ -11,15 +12,13 @@ export default class EnemyManager {
   private pools: EnemyPools;
 
   constructor() {
-    const ENEMY_SPAWN_COUNT = 10;
     const enemyDataKeys = Object.keys(enemyData) as EnemyType[];
 
     this.pools = enemyDataKeys.reduce<EnemyPools>(
       (pool, type) => {
         pool[type] = new ObjectPooler(() => {
-          const data: EnemyConfig[typeof type] = enemyData[type];
+          const data: EnemiesConfig[typeof type] = enemyData[type];
           const behavior = EnemyBehaviorFactory.create(data.behaviorType);
-
           return new Enemy(type, behavior, data);
         }, ENEMY_SPAWN_COUNT);
 

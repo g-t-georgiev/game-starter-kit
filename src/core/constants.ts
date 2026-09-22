@@ -60,6 +60,7 @@ export const PLAYER_SOUNDS = Object.freeze({
 });
 
 // Enemies
+export const ENEMY_SPAWN_COUNT = 10;
 export const ENEMY_DESPAWN_MARGIN = 200;
 export const ENEMY_SPAWN_MARGIN = 100;
 export const ENEMY_SPAWN_INTERVAL = 2;
@@ -75,3 +76,7 @@ export const HEALTHBAR_BACKGROUND = "rgb(0, 0, 0, 0.6)";
 export const HEALTHBAR_FILL = "#ff5f6d";
 
 export const PUSHBACK_DECAY = 800;
+
+// Particles
+export const PARTICLE_SPAWN_COUNT = 200;
+export const PARTICLE_SPEED_SCALE = 0.5;

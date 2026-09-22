@@ -1,5 +1,4 @@
 import type Particle from "@/entities/Particle";
-
 export default class RadialBehavior {
   update(particle: Particle, deltaTime: number) {
     particle.x += particle.vx * deltaTime;

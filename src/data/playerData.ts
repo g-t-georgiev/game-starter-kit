@@ -1,6 +1,6 @@
-import type { PlayerData } from "../types/player";
+import type { PlayerConfig } from "@/types/player";
 
-export default Object.freeze({
+export default {
   // Dimensions
   width: 64,
   height: 64,
@@ -17,4 +17,4 @@ export default Object.freeze({
   strokeColor: "#ffffff",
   imageName: "player",
   imagePath: "player.png",
-} as const) satisfies PlayerData;
+} as const satisfies PlayerConfig;
