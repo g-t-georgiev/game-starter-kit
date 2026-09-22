@@ -1,5 +1,6 @@
+import type { Movable, Transform } from "@/types/utils";
+import type { UnpackUnions } from "@/types/utils";
 import type SeekBehavior from "@/entities/behaviors/enemies/SeekBehavior";
-import type { Movable, Transform } from "@/types/properties";
 import type DriftBehavior from "@/entities/behaviors/enemies/DriftBehavior";
 
 export type EnemyBehaviorType =
@@ -72,4 +73,4 @@ export type AnyEnemyBehaviorConfig = EnemyBehaviorConfigMap[EnemyBehaviorType];
 
 /** Deduces required update parameters for a composite collection of behavior types */
 export type InferBehaviorArgs<TTypes extends readonly EnemyBehaviorType[]> =
-  "seek" extends TTypes[number] ? [target: Transform] : [];
+  "seek" extends UnpackUnions<TTypes> ? [target: Transform] : [];

@@ -1,6 +1,6 @@
 import type { EnemiesConfig, EnemyConfig, EnemyType, GetBehaviorFromEnemy, ResolvedEnemyBehaviorArgs } from "@/types/enemies";
 import type { Behavior } from "@/types/enemyBehaviors";
-import { Direction, type DirectionVector, type Movable } from "@/types/properties";
+import { Direction, type DirectionVector, type Movable } from "@/types/utils";
 import {
   GAME_WIDTH,
   GAME_HEIGHT,

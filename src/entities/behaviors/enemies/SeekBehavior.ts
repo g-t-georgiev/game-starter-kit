@@ -1,4 +1,4 @@
-import type { Movable, Transform } from "@/types/properties";
+import type { Movable, Transform } from "@/types/utils";
 import type { Behavior, SeekBehaviorConfig } from "@/types/enemyBehaviors";
 
 const DEFAULT_OPTIONS: SeekBehaviorConfig = {

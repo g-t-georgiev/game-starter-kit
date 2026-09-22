@@ -1,4 +1,4 @@
-import type { CircularCollider } from "@/types/properties";
+import type { CircularCollider } from "@/types/collisions";
 
 export default class CollisionSystem {
   checkCircleCircle(a: CircularCollider, b: CircularCollider): boolean {

@@ -1,4 +1,4 @@
-import type { Movable, Transform } from "@/types/properties";
+import type { Movable, Transform } from "@/types/utils";
 import type {
   EnemyBehaviorType,
   EnemyBehaviorRegistry,

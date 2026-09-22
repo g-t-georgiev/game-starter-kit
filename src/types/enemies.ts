@@ -1,8 +1,9 @@
-import type { EntityConfig } from "@/types/properties";
+import type { EntityConfig } from "@/types/entity";
 import type { EnemyBehaviorArgsMap, EnemyBehaviorType } from "@/types/enemyBehaviors";
 import type { ParticleType } from "@/types/particleBehaviors";
+import type { UnpackUnions } from "@/types/utils";
 
-/** Explicit mapping registry decoupling enemy types from behavior types */
+/** Enemy behavior map per enemy type. Accepts an array or single enemy behavior type(s). */
 type EnemyBehaviorMap = {
   drifter: "drift";
   seeker: "seek";
@@ -20,16 +21,11 @@ export interface EnemySounds<Type extends EnemyType, Prefix extends "enemy" = "e
 };
 
 /** Maps a specific EnemyType back to its corresponding EnemyBehaviorType */
-export type GetBehaviorFromEnemy<T extends EnemyType> =
-  T extends keyof EnemyBehaviorMap ? EnemyBehaviorMap[T] : EnemyBehaviorType;
-
-/** Unpacks arrays into unions: ["drift", "seek"] becomes "drift" | "seek" */
-export type FlattenEnemyBehaviors<T> = T extends readonly (infer U)[] ? U : T;
+export type GetBehaviorFromEnemy<T extends EnemyType> = T extends EnemyType ? EnemyBehaviorMap[T] : never;
 
 /** Safely maps complex behavior tuples into a union of their respective argument arrays */
 export type ResolvedEnemyBehaviorArgs<TEnemy extends EnemyType> =
-  "seek" extends FlattenEnemyBehaviors<GetBehaviorFromEnemy<TEnemy>>
-  ? EnemyBehaviorArgsMap[FlattenEnemyBehaviors<GetBehaviorFromEnemy<TEnemy>> & EnemyBehaviorType] : [];
+  EnemyBehaviorArgsMap[UnpackUnions<GetBehaviorFromEnemy<TEnemy>>];
 
 export interface EnemyConfig<
   Type extends EnemyType = EnemyType,

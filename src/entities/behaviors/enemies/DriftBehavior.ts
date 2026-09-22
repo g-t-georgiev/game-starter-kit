@@ -1,4 +1,4 @@
-import type { Movable } from "@/types/properties";
+import type { Movable } from "@/types/utils";
 import type { Behavior, DriftBehaviorConfig } from "@/types/enemyBehaviors";
 
 const DEFAULT_OPTIONS: DriftBehaviorConfig = {

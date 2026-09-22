@@ -1,7 +1,7 @@
 import type { PlayerConfig } from "@/types/player.js";
+import { Direction, type DirectionVector, type Movable } from "@/types/utils";
 import { GAME_WIDTH, GAME_HEIGHT, PUSHBACK_DECAY } from "@/core/constants";
 import playerData from "@/data/playerData";
-import { Direction, type DirectionVector, type Movable } from "@/types/properties";
 
 
 export default class Player implements Movable {

@@ -1,4 +1,4 @@
-import type { Position } from "@/types/properties";
+import type { Position } from "@/types/utils";
 import type ObjectPooler from "@/utils/ObjectPooler";
 import type Particle from "@/entities/Particle";
 import type RadialBehavior from "@/entities/behaviors/particles/RadialBehavior";

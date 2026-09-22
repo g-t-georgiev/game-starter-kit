@@ -1,4 +1,4 @@
-import type { Position } from "@/types/properties";
+import type { Position } from "@/types/utils";
 import type { ParticleBehavior, ParticleConfig } from "@/types/particleBehaviors";
 
 export default class Particle {
