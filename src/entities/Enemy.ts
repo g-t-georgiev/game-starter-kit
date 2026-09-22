@@ -1,6 +1,5 @@
-import type { EnemiesConfig, EnemyConfig, EnemyType, GetBehaviorFromEnemy } from "@/types/enemies";
+import type { EnemiesConfig, EnemyConfig, EnemyType, GetBehaviorFromEnemy, ResolvedEnemyBehaviorArgs } from "@/types/enemies";
 import type { Behavior } from "@/types/enemyBehaviors";
-import type { EnemyBehaviorArgsMap } from "@/types/enemyBehaviors";
 import { Direction, type DirectionVector, type Movable } from "@/types/properties";
 import {
   GAME_WIDTH,
@@ -12,8 +11,8 @@ import enemyData from "@/data/enemyData";
 
 export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Movable {
   type: TEnemy;
-  behavior: Behavior<this, EnemyBehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]>;
-  readonly data: EnemyConfig<GetBehaviorFromEnemy<TEnemy>, TEnemy>;
+  behavior: Behavior<this, ResolvedEnemyBehaviorArgs<TEnemy>>;
+  readonly data: EnemyConfig<TEnemy, GetBehaviorFromEnemy<TEnemy>>;
 
   flipHorizontal = false;
   orientation: Direction = Direction.Right;
@@ -48,8 +47,8 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
 
   constructor(
     enemyType: TEnemy,
-    behavior: Behavior<Enemy<TEnemy>, EnemyBehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]>,
-    overrides: Partial<EnemyConfig<GetBehaviorFromEnemy<TEnemy>, TEnemy>> = {}
+    behavior: Behavior<Enemy<TEnemy>, ResolvedEnemyBehaviorArgs<TEnemy>>,
+    overrides: Partial<EnemyConfig<TEnemy, GetBehaviorFromEnemy<TEnemy>>> = {}
   ) {
     const DEFAULT_CONFIG: EnemiesConfig[TEnemy] = enemyData[enemyType];
 
@@ -104,7 +103,7 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
 
   update(
     deltaTime: number,
-    ...args: EnemyBehaviorArgsMap[GetBehaviorFromEnemy<TEnemy>]
+    ...args: ResolvedEnemyBehaviorArgs<TEnemy>
   ) {
     if (!this.active) return;
 
@@ -150,7 +149,6 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
     const oldX = this.x;
     const oldY = this.y;
 
-    // TypeScript guarantees correct arguments for this specific behavior type
     this.behavior.update(this, deltaTime, ...args);
 
     const dx = this.x - oldX;

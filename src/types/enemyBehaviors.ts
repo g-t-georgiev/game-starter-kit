@@ -54,3 +54,22 @@ export type EnemyBehaviorRegistry = {
     options?: EnemyBehaviorConfigMap[K]
   ) => EnemyBehaviorMap<TSource, TTarget>[K];
 };
+
+/** Single unified union of all concrete behavior instances */
+export type AnyEnemyBehavior<
+  TSource extends Movable = Movable,
+  TTarget extends Transform = Transform
+> = EnemyBehaviorMap<TSource, TTarget>[EnemyBehaviorType];
+
+/** Maps behavior types to their respective config options */
+export interface EnemyBehaviorConfigMap {
+  seek: Partial<SeekBehaviorConfig>;
+  drift: Partial<DriftBehaviorConfig>;
+}
+
+/** Unified union of all possible behavior configuration options */
+export type AnyEnemyBehaviorConfig = EnemyBehaviorConfigMap[EnemyBehaviorType];
+
+/** Deduces required update parameters for a composite collection of behavior types */
+export type InferBehaviorArgs<TTypes extends readonly EnemyBehaviorType[]> =
+  "seek" extends TTypes[number] ? [target: Transform] : [];
