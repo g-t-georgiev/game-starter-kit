@@ -8,7 +8,7 @@ const DEFAULT_OPTIONS: SeekBehaviorConfig = {
 export default class SeekBehavior<
   TSource extends Movable = Movable,
   TTarget extends Transform = Transform
-> implements Behavior<TSource, [TTarget]> {
+> implements Behavior<TSource, [target: TTarget]> {
   readonly options: SeekBehaviorConfig = {
     ...DEFAULT_OPTIONS,
   };

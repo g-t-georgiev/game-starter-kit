@@ -36,11 +36,13 @@ export default class ParticleManager {
 
       if (!particleEffectType) return;
 
+      const { type, ...overrides } = particleEffectType;
+
       this.spawnParticleEffect(
-        particleEffectType,
+        type,
         enemy.centerX,
         enemy.centerY,
-        { count: 5, color: enemy.data.color }
+        { ...overrides, color: enemy.data.color }
       );
     });
     eventEmitter.on(EVENTS.ENEMY_DIED, (enemy) => {
@@ -49,11 +51,13 @@ export default class ParticleManager {
 
       if (!particleEffectType) return;
 
+      const { type, ...overrides } = particleEffectType;
+
       this.spawnParticleEffect(
-        particleEffectType,
+        type,
         enemy.centerX,
         enemy.centerY,
-        { count: 15, color: enemy.data.color }
+        { ...overrides, color: enemy.data.color }
       );
     });
   }
@@ -87,7 +91,16 @@ export default class ParticleManager {
       particle.vx = Math.cos(angle) * speed;
       particle.vy = Math.sin(angle) * speed;
       particle.age = 0;
+      particle.gravity.x = data.gravity.x;
+      particle.gravity.y = data.gravity.y;
       particle.color = color;
+
+      if (!particle.behavior) {
+        const behavior = ParticleBehaviorFactory.create(data.behaviorType);
+        particle.behavior = behavior;
+      }
+
+      ParticleBehaviorFactory.init(particle.behavior, x, y);
     }
   }
 

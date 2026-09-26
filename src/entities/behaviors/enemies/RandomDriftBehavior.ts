@@ -1,0 +1,44 @@
+import type { Movable } from "@/types/utils";
+import type { Behavior, RandomDriftBehaviorConfig } from "@/types/enemyBehaviors";
+
+const DEFAULT_OPTIONS: RandomDriftBehaviorConfig = {
+  changeInterval: 2,
+};
+
+export default class RandomDriftBehavior<
+  TSource extends Movable = Movable
+> implements Behavior<TSource, []> {
+  private angle: number;
+  private changeTime: number;
+
+  readonly options: RandomDriftBehaviorConfig = {
+    ...DEFAULT_OPTIONS,
+  };
+
+  constructor(options: Partial<RandomDriftBehaviorConfig> = {}) {
+    Object.assign(this.options, options);
+
+    this.angle = Math.random() * Math.PI * 2;
+    this.changeTime = 0;
+  }
+
+  update(source: TSource, deltaTime: number): void {
+    this.changeTime += deltaTime;
+
+    if (this.changeTime >= this.options.changeInterval) {
+      this.angle = Math.random() * Math.PI * 2;
+      this.changeTime -= this.options.changeInterval;
+    }
+
+    const dx = Math.cos(this.angle);
+    const dy = Math.sin(this.angle);
+
+    source.x += dx * source.speed * deltaTime;
+    source.y += dy * source.speed * deltaTime;
+  }
+
+  reset() {
+    this.angle = Math.random() * Math.PI * 2;
+    this.changeTime = 0;
+  }
+}

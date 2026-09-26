@@ -56,7 +56,7 @@ export default class RenderSystem {
   }
 
   renderPlayer(player: Player): void {
-    const playerImage = this.imageManager.get("player");
+    const playerImage = this.imageManager.get(player.data.imageName);
 
     if (player.invincible) {
       this.context.globalAlpha =

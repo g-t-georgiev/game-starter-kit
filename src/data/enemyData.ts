@@ -31,8 +31,14 @@ export default {
       death: "enemy_drifter_death",
     },
     particleEffects: {
-      hit: "smoke",
-      death: "sparks",
+      hit: {
+        type: "smoke",
+        count: 6,
+      },
+      death: {
+        type: "implosion",
+        count: 25,
+      },
     },
   } as const,
   seeker: {
@@ -60,8 +66,14 @@ export default {
       death: "enemy_seeker_death",
     },
     particleEffects: {
-      hit: "sparks",
-      death: "sparks",
+      hit: {
+        type: "sparks",
+        count: 10,
+      },
+      death: {
+        type: "implosion",
+        count: 17,
+      },
     },
   } as const,
 } satisfies EnemiesConfig;

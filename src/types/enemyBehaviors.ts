@@ -2,10 +2,12 @@ import type { Movable, Transform } from "@/types/utils";
 import type { UnpackUnions } from "@/types/utils";
 import type SeekBehavior from "@/entities/behaviors/enemies/SeekBehavior";
 import type DriftBehavior from "@/entities/behaviors/enemies/DriftBehavior";
+import type RandomDriftBehavior from "@/entities/behaviors/enemies/RandomDriftBehavior";
 
 export type EnemyBehaviorType =
   | "seek"
-  | "drift";
+  | "drift"
+  | "randomDrift";
 
 export type EnemyBehaviorTypes = {
   [K in EnemyBehaviorType as `${Capitalize<K>}`]: K;
@@ -22,13 +24,23 @@ export interface SeekBehaviorConfig {
 };
 
 export interface DriftBehaviorConfig {
+  /** Move towards player position snaptshot duration. */
+  moveDuration: number;
+  idleDurationMin: number;
+  idleDurationMax: number;
+  /** Elapsed time in seconds used to signal a phase change. */
+  phaseDuration: number;
+};
+
+export interface RandomDriftBehaviorConfig {
   /** Elapsed time in seconds used to signal a change direction */
   changeInterval: number;
-};
+}
 
 export type EnemyBehaviorArgsMap = {
   seek: [target: Transform];
-  drift: [];
+  drift: [target: Transform];
+  randomDrift: [];
 };
 
 /** Maps behavior types to their instantiated class types */
@@ -37,13 +49,15 @@ export interface EnemyBehaviorMap<
   TTarget extends Transform = Transform
 > {
   seek: SeekBehavior<TSource, TTarget>;
-  drift: DriftBehavior<TSource>;
+  drift: DriftBehavior<TSource, TTarget>;
+  randomDrift: RandomDriftBehavior<TSource>;
 }
 
 /** Maps behavior types to their respective config options */
 export interface EnemyBehaviorConfigMap {
   seek: Partial<SeekBehaviorConfig>;
   drift: Partial<DriftBehaviorConfig>;
+  randomDrift: Partial<RandomDriftBehaviorConfig>;
 }
 
 /** Registry mapping behavior keys to creator functions */
@@ -61,12 +75,6 @@ export type AnyEnemyBehavior<
   TSource extends Movable = Movable,
   TTarget extends Transform = Transform
 > = EnemyBehaviorMap<TSource, TTarget>[EnemyBehaviorType];
-
-/** Maps behavior types to their respective config options */
-export interface EnemyBehaviorConfigMap {
-  seek: Partial<SeekBehaviorConfig>;
-  drift: Partial<DriftBehaviorConfig>;
-}
 
 /** Unified union of all possible behavior configuration options */
 export type AnyEnemyBehaviorConfig = EnemyBehaviorConfigMap[EnemyBehaviorType];
