@@ -6,13 +6,15 @@ import type {
   AnyEnemyBehaviorConfig,
   AnyEnemyBehavior,
 } from "@/types/enemyBehaviors";
-import SeekBehavior from "./SeekBehavior";
-import DriftBehavior from "./DriftBehavior";
-import CompositeBehavior from "./CompositeBehavior";
+import SeekBehavior from "@/entities/behaviors/enemies/SeekBehavior";
+import DriftBehavior from "@/entities/behaviors/enemies/DriftBehavior";
+import CompositeBehavior from "@/entities/behaviors/enemies/CompositeBehavior";
+import RandomDriftBehavior from "@/entities/behaviors/enemies/RandomDriftBehavior";
 
 export const behaviorRegistry: EnemyBehaviorRegistry = {
   seek: (options) => new SeekBehavior(options),
   drift: (options) => new DriftBehavior(options),
+  randomDrift: (options) => new RandomDriftBehavior(options),
 };
 
 export default class EnemyBehaviorFactory {

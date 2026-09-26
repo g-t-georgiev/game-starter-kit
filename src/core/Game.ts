@@ -48,6 +48,9 @@ export default class Game {
   keys: Record<string, boolean> = {};
   enemiesKilled: number = 0;
 
+  /** Mission complete status flag. */
+  missionCompleted: boolean = false;
+
   constructor() {
     this.canvas = document.querySelector<HTMLCanvasElement>("#gameCanvas")!;
 
@@ -83,7 +86,7 @@ export default class Game {
     GlobalEventEmitter.on(EVENTS.GAME_MENU, () => this.returnToMenu());
     GlobalEventEmitter.on(EVENTS.GAME_PAUSE, () => this.pause());
     GlobalEventEmitter.on(EVENTS.GAME_RESUME, () => this.resume());
-    GlobalEventEmitter.on(EVENTS.MISSION_COMPLETED, () => this.missionCompleted());
+    GlobalEventEmitter.on(EVENTS.MISSION_COMPLETED, () => this.checkMissionComplete());
 
     GlobalEventEmitter.on(EVENTS.PLAYER_DAMAGED, (health, maxHealth) => {
       GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, PLAYER_SOUNDS.Damaged);
@@ -213,6 +216,8 @@ export default class Game {
 
     this.enemiesKilled = 0;
 
+    this.missionCompleted = false;
+
     this.accumulatedTime = 0;
     this.lastTime = performance.now();
   }
@@ -268,7 +273,7 @@ export default class Game {
     this.uiManager.showGameOverMenu();
   }
 
-  missionCompleted(): void {
+  checkMissionComplete(): void {
     this.state = GAME_STATES.MISSION_COMPLETED;
     GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, GAME_SOUNDS.MissionCompleted);
 
@@ -279,10 +284,13 @@ export default class Game {
   checkMissionConditions(): void {
     if (this.state !== GAME_STATES.PLAYING) return;
 
+    if (this.missionCompleted) return;
+
     if (
       this.enemiesKilled >= missionsData.killCount ||
       this.accumulatedTime >= missionsData.surviveTime
     ) {
+      this.missionCompleted = true;
       GlobalEventEmitter.emit(EVENTS.MISSION_COMPLETED);
     }
   }
