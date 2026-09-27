@@ -56,23 +56,22 @@ export default class RenderSystem {
   }
 
   renderPlayer(player: Player): void {
-    const playerImage = this.imageManager.get(player.data.imageName);
+    const isDying = player.animator.isCurrentLabel("death");
 
-    if (player.invincible) {
+    if (player.invincible && !isDying) {
       this.context.globalAlpha =
         FLASH_MIN_ALPHA + FLASH_ALPHA_RANGE * Math.abs(Math.sin(player.invincibilityTimer * FLASH_SPEED));
     }
 
-    if (playerImage) {
-      this.context.save();
-      if (player.flipHorizontal) {
-        this.context.translate(player.x + player.width, player.y);
-        this.context.scale(-1, 1);
-        this.context.drawImage(playerImage, 0, 0, player.width, player.height);
-      } else {
-        this.context.drawImage(playerImage, player.x, player.y, player.width, player.height);
-      }
-      this.context.restore();
+    const frame = player.animator.getCurrentFrame();
+    const spritesheet = frame?.spritesheet ? this.imageManager.get(frame.spritesheet) : null;
+
+    if (frame && spritesheet) {
+      this.context.drawImage(
+        spritesheet,
+        frame.sx, frame.sy, frame.sw, frame.sh,
+        player.x, player.y, player.width, player.height
+      );
     } else {
       // fallback
       this.context.fillStyle = player.data.color;
@@ -103,21 +102,32 @@ export default class RenderSystem {
     for (const enemy of enemies) {
       if (!enemy.active) continue;
 
-      const enemyImage = this.imageManager.get(enemy.data.imageName);
+      const isDying = enemy.animator.isCurrentLabel("death");
 
-      if (enemy.invincible) {
+      if (enemy.invincible && !isDying) {
         this.context.globalAlpha =
           FLASH_MIN_ALPHA + FLASH_ALPHA_RANGE * Math.abs(Math.sin(enemy.invincibilityTimer * FLASH_SPEED));
       }
 
-      if (enemyImage) {
+      const frame = enemy.animator.getCurrentFrame();
+      const spritesheet = frame?.spritesheet ? this.imageManager.get(frame.spritesheet) : null;
+
+      if (frame && spritesheet) {
         this.context.save();
         if (enemy.flipHorizontal) {
           this.context.translate(enemy.x + enemy.width, enemy.y);
           this.context.scale(-1, 1);
-          this.context.drawImage(enemyImage, 0, 0, enemy.width, enemy.height);
+          this.context.drawImage(
+            spritesheet,
+            frame.sx, frame.sy, frame.sw, frame.sh,
+            0, 0, enemy.width, enemy.height
+          );
         } else {
-          this.context.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height);
+          this.context.drawImage(
+            spritesheet,
+            frame.sx, frame.sy, frame.sw, frame.sh,
+            enemy.x, enemy.y, enemy.width, enemy.height
+          );
         }
         this.context.restore();
       } else {
@@ -128,7 +138,7 @@ export default class RenderSystem {
 
       this.context.globalAlpha = 1;
 
-      if (enemy.health < enemy.maxHealth) {
+      if (enemy.health < enemy.maxHealth && !isDying) {
         this.renderEnemyHealthBar(enemy);
       }
     }

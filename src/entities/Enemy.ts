@@ -1,4 +1,11 @@
-import type { EnemiesConfig, EnemyConfig, EnemyType, GetBehaviorFromEnemy, ResolvedEnemyBehaviorArgs } from "@/types/enemies";
+import type {
+  EnemyState,
+  EnemiesConfig,
+  EnemyConfig,
+  EnemyType,
+  GetBehaviorFromEnemy,
+  ResolvedEnemyBehaviorArgs
+} from "@/types/enemies";
 import type { Behavior } from "@/types/enemyBehaviors";
 import { Direction, type DirectionVector, type Movable } from "@/types/utils";
 import {
@@ -8,6 +15,7 @@ import {
   PUSHBACK_DECAY,
 } from "@/core/constants";
 import enemyData from "@/data/enemyData";
+import AnimatorController from "@/utils/AnimatorController";
 
 export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Movable {
   type: TEnemy;
@@ -45,6 +53,8 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
   pushVx = 0;
   pushVy = 0;
 
+  animator: AnimatorController;
+
   constructor(
     enemyType: TEnemy,
     behavior: Behavior<Enemy<TEnemy>, ResolvedEnemyBehaviorArgs<TEnemy>>,
@@ -74,6 +84,9 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
     this.collisionRadius = this.data.collisionRadius;
     this.invincibilityDuration = this.data.invincibilityDuration;
     this.pushbackForce = this.data.pushbackForce;
+
+    // Animations
+    this.animator = new AnimatorController<EnemyState>(this.data.animations!, true);
   }
 
   get centerX() {
@@ -85,12 +98,10 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
   }
 
   spawn(x: number, y: number) {
+    this.reset();
     this.x = x;
     this.y = y;
-    this.health = this.maxHealth;
     this.active = true;
-    this.invincible = false;
-    this.invincibilityTimer = 0;
   }
 
   reset() {
@@ -98,7 +109,10 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
     this.health = this.maxHealth;
     this.pushVx = 0;
     this.pushVy = 0;
+    this.invincible = false;
+    this.invincibilityTimer = 0;
     this.behavior.reset?.();
+    this.animator.reset(this.data.animations?.initialState);
   }
 
   update(
@@ -106,15 +120,6 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
     ...args: ResolvedEnemyBehaviorArgs<TEnemy>
   ) {
     if (!this.active) return;
-
-    if (this.invincible) {
-      this.invincibilityTimer -= deltaTime;
-
-      if (this.invincibilityTimer <= 0) {
-        this.invincible = false;
-        this.invincibilityTimer = 0;
-      }
-    }
 
     if (
       this.x < -ENEMY_DESPAWN_MARGIN ||
@@ -126,42 +131,72 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
       return;
     }
 
-    if (this.pushVx !== 0 || this.pushVy !== 0) {
-      // Apply pushback velocity
-      this.x += this.pushVx * deltaTime;
-      this.y += this.pushVy * deltaTime;
+    if (this.invincible) this._updateInvincibility(deltaTime);
+    if (this.pushVx !== 0 || this.pushVy !== 0) this._updatePushback(deltaTime);
 
-      // Decay pushback velocity
-      const speed = Math.sqrt(this.pushVx * this.pushVx + this.pushVy * this.pushVy);
-      const decay = PUSHBACK_DECAY * deltaTime;
+    if (this.animator.isCurrentLabel("death")) {
+      this.animator.update(deltaTime);
 
-      if (speed <= decay) {
-        this.pushVx = 0;
-        this.pushVy = 0;
-      } else {
-        const ratio = (speed - decay) / speed;
+      if (this.animator.finished) this.active = false;
 
-        this.pushVx *= ratio;
-        this.pushVy *= ratio;
-      }
+      return;
     }
 
-    const oldX = this.x;
-    const oldY = this.y;
+    if (!this.animator.isCurrentLabel("hit")) {
+      const oldX = this.x;
+      const oldY = this.y;
 
-    this.behavior.update(this, deltaTime, ...args);
+      this.behavior.update(this, deltaTime, ...args);
+      const label = "idling" in this.behavior && this.behavior.idling ? "idle" : "move";
+      this.animator.play(label);
+      this._flipDirection(oldX, oldY);
+    }
 
-    const dx = this.x - oldX;
-    const dy = this.y - oldY;
+    this.animator.update(deltaTime);
+  }
 
-    this.directionX = Math.sign(dx) as DirectionVector;
-    this.directionY = Math.sign(dy) as DirectionVector;
+  private _flipDirection(prevX: number, prevY: number) {
+    this.directionX = Math.sign(this.x - prevX) as DirectionVector;
+    this.directionY = Math.sign(this.y - prevY) as DirectionVector;
 
     // Only update flip state if entity moves horizontally
     if (this.directionX !== 0) {
       this.flipHorizontal =
         (this.orientation === Direction.Right && this.directionX === -1) ||
         (this.orientation === Direction.Left && this.directionX === 1);
+    }
+  }
+
+  private _updateInvincibility(deltaTime: number) {
+    if (!this.invincible) return;
+
+    this.invincibilityTimer -= deltaTime;
+
+    if (this.invincibilityTimer <= 0) {
+      this.invincible = false;
+      this.invincibilityTimer = 0;
+    }
+  }
+
+  /** Apply pushback velocity. */
+  private _updatePushback(deltaTime: number) {
+    if (!this.pushVx && !this.pushVy) return;
+
+    this.x += this.pushVx * deltaTime;
+    this.y += this.pushVy * deltaTime;
+
+    // Decay pushback velocity
+    const speed = Math.sqrt(this.pushVx * this.pushVx + this.pushVy * this.pushVy);
+    const decay = PUSHBACK_DECAY * deltaTime;
+
+    if (speed <= decay) {
+      this.pushVx = 0;
+      this.pushVy = 0;
+    } else {
+      const ratio = (speed - decay) / speed;
+
+      this.pushVx *= ratio;
+      this.pushVy *= ratio;
     }
   }
 
@@ -179,6 +214,9 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
 
     this.invincible = true;
     this.invincibilityTimer = this.data.invincibilityDuration;
+
+    const label = this.isDead() ? "death" : "hit";
+    this.animator.play(label, { force: true });
 
     return true;
   }

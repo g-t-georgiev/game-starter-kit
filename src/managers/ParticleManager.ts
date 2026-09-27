@@ -10,6 +10,8 @@ export default class ParticleManager {
   private pools: ParticlePools;
   private eventEmitter: EventEmitter;
 
+  public readonly activeParticlesBuffer: Particle[] = [];
+
   constructor(eventEmitter: EventEmitter) {
     const particleDataKeys = Object.keys(particleData) as ParticleType[];
 
@@ -108,6 +110,9 @@ export default class ParticleManager {
     for (const pool of Object.values(this.pools)) {
       pool.updateAll(deltaTime)
     }
+
+    // Snapshot after all position updates and pool pruning are done
+    this.populateActiveEntitiesSnapshot();
   }
 
   reset(): void {
@@ -116,9 +121,15 @@ export default class ParticleManager {
     }
   }
 
-  *getActive() {
+  populateActiveEntitiesSnapshot(buffer: Particle[] = this.activeParticlesBuffer): void {
+    buffer.length = 0; // Clear without allocating new memory
+
+    // Direct array lookups are blazingly fast
     for (const pool of Object.values(this.pools)) {
-      yield* pool.getActive();
+      const active = pool.activeEntities;
+      for (let i = 0; i < active.length; i++) {
+        buffer.push(active[i]);
+      }
     }
   }
 }

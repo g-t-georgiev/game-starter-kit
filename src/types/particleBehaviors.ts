@@ -19,7 +19,7 @@ export interface ParticleConfig {
   shrink: boolean;
   gravity: Position;
   behaviorType: ParticleBehaviorType;
-};
+}
 
 export type ParticlesConfig = {
   [Type in ParticleType]: ParticleConfig;
@@ -29,17 +29,17 @@ export type ParticlesConfig = {
 export interface ParticleBehaviorMap {
   radial: RadialBehavior;
   implosion: ImplosionBehavior;
-};
+}
 
 /** Particle behavior "type" to `init` method arguments map. */
 export interface ParticleBehaviorInitMap {
   radial: [];
   implosion: [originX: number, originY: number];
-};
+}
 
 export type ParticleBehaviorRegistry = {
   [K in ParticleBehaviorType]: () => ParticleBehaviorMap[K];
-};
+}
 
 /** Particle behavior type constraint for the `Particle` class' `behavior` field. */
 export type ParticleBehavior = ParticleBehaviorMap[keyof ParticleBehaviorMap];
@@ -53,4 +53,4 @@ export interface IParticleBehavior<T extends ParticleBehaviorType> {
   readonly type: T;
   init?(...args: ParticleBehaviorInitMap[T]): void;
   update(particle: Particle, deltaTime: number): void;
-};
+}

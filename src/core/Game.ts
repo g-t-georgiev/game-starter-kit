@@ -1,5 +1,3 @@
-import type Enemy from "@/entities/Enemy";
-
 import {
   GAME_WIDTH,
   GAME_HEIGHT,
@@ -96,7 +94,6 @@ export default class Game {
     GlobalEventEmitter.on(EVENTS.PLAYER_DIED, () => {
       GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, PLAYER_SOUNDS.Died);
       GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, GAME_SOUNDS.GameOver);
-      this.gameOver();
     });
 
     GlobalEventEmitter.on(EVENTS.ENEMY_DIED, () => {
@@ -184,16 +181,13 @@ export default class Game {
 
     this.checkMissionConditions();
 
-    const activeEnemies = [...this.enemyManager.getActive()];
-    const activeParticle = [...this.particlesManager.getActive()];
-
-    this.update(deltaTime, activeEnemies);
+    this.update(deltaTime);
 
     this.renderSystem.render(
       this.state,
       this.player,
-      activeEnemies,
-      activeParticle,
+      this.enemyManager.activeEnemiesBuffer,
+      this.particlesManager.activeParticlesBuffer,
       this.debug
     );
   };
@@ -222,19 +216,28 @@ export default class Game {
     this.lastTime = performance.now();
   }
 
-  update(deltaTime: number, activeEnemies: Iterable<Enemy>): void {
+  update(deltaTime: number): void {
     if (this.state !== GAME_STATES.PLAYING) return;
 
     this.accumulatedTime += deltaTime;
     this.uiManager.updateTimer(this.accumulatedTime);
 
     this.player.update(deltaTime, this.keys);
-
-    this.collisionManager.update(this.player, activeEnemies);
-
-    this.enemyManager.update(deltaTime, this.player);
-    this.enemySpawner.update(deltaTime);
     this.particlesManager.update(deltaTime);
+
+    if (this.player.isDead()) {
+      // if player is dead, wait for death animation and skip enemies spawning, updated and collision checks
+      if (this.player.hasDeathAnimationFinished())
+        // transition to game over state once player's death animation completes
+        this.gameOver();
+
+      return;
+    }
+
+    this.enemySpawner.update(deltaTime);
+    this.enemyManager.update(deltaTime, this.player);
+
+    this.collisionManager.update(this.player, this.enemyManager.activeEnemiesBuffer);
   }
 
   pause(): void {

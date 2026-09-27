@@ -13,12 +13,16 @@ export default class CollisionManager {
     this.collisionSystem = collisionSystem;
   }
 
-  update(player: Player, enemies: Iterable<Enemy>) {
+  update(player: Player, enemies: Enemy[]) {
     this.checkPlayerEnemyCollision(player, enemies);
   }
 
-  checkPlayerEnemyCollision(player: Player, enemies: Iterable<Enemy>) {
+  checkPlayerEnemyCollision(player: Player, enemies: Enemy[]) {
     for (const enemy of enemies) {
+      if (!enemy.active) continue;
+
+      if (enemy.animator.isCurrentLabel("death")) continue;
+
       if (this.collisionSystem.checkCircleCircle(player, enemy)) {
         const dx = player.centerX - enemy.centerX;
         const dy = player.centerY - enemy.centerY;
@@ -33,7 +37,6 @@ export default class CollisionManager {
           this.eventEmitter.emit(EVENTS.ENEMY_DAMAGED, enemy);
 
           if (enemy.isDead()) {
-            enemy.active = false;
             this.eventEmitter.emit(EVENTS.ENEMY_DIED, enemy);
           } else if (!enemy.data.pushbackImmune) {
             enemy.applyPushback(-nx, -ny, enemy.pushbackForce);
