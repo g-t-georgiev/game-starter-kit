@@ -1,29 +1,29 @@
 import { IMAGE_ASSETS_DIR } from "@/core/constants";
 import playerData from "@/data/playerData";
 import enemyData from "@/data/enemyData";
+import particleData from "@/data/particleData";
 
 type ImageAssetEntry = { name: string; path: string };
 
-const defaultImgExt = "png";
-const imageExtMatcher = /(?<=\.)(png|jpe?g|gif|webp|avif|bmp|tiff?|svg|ico)$/;
+const DEFAULT_IMG_EXT = "png";
 
 /** Normalizes entity config visual assets into a uniform array of { name, path } pairs. */
 function extractImageAssets(config?: any): ImageAssetEntry[] {
   if (!config) return [];
 
-  const { animations } = config;
+  const { animations, imageName, imagePath } = config;
   const rawSheets = animations?.spritesheets;
+  const assets: ImageAssetEntry[] = [];
 
   // if animations.spritesheets is defined, handle all union shapes
   if (rawSheets) {
     const sheetsList = Array.isArray(rawSheets) ? rawSheets : [rawSheets];
-    const assets: ImageAssetEntry[] = [];
 
     for (const sheet of sheetsList) {
       if (typeof sheet === "string") {
         assets.push({
           name: sheet,
-          path: `${IMAGE_ASSETS_DIR}/${imageExtMatcher.test(sheet) ? sheet : `${sheet}.${defaultImgExt}`}`,
+          path: `${IMAGE_ASSETS_DIR}/${sheet}.${DEFAULT_IMG_EXT}`,
         });
       } else if (sheet && typeof sheet === "object") {
         assets.push({
@@ -32,12 +32,16 @@ function extractImageAssets(config?: any): ImageAssetEntry[] {
         });
       }
     }
-
-    if (assets.length > 0) return assets;
   }
 
-  // No valid image metadata found
-  return [];
+  if (imageName) {
+    assets.push({
+      name: imageName,
+      path: `${IMAGE_ASSETS_DIR}/${imagePath || `${imageName}.${DEFAULT_IMG_EXT}`}`
+    });
+  }
+
+  return assets;
 }
 
 export default class ImageManager {
@@ -90,7 +94,8 @@ export default class ImageManager {
 
   /** Load all necessary image assets for initial rendering here. */
   loadAll() {
-    const configs = [playerData, ...Object.values(enemyData)];
+    const imageParticleConfigs = Object.values(particleData).filter((config) => config.shape === "image");
+    const configs = [playerData, ...Object.values(enemyData), ...imageParticleConfigs];
     const assetsMap = new Map<string, string>();
 
     for (const config of configs) {

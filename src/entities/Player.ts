@@ -28,7 +28,7 @@ export default class Player implements Movable {
   collisionDamage: number;
 
   invincibilityDuration: number;
-  pushbackForce: number;
+  knockbackPower: number;
 
   // Multipliers
   speedMultiplier = 1;
@@ -61,7 +61,7 @@ export default class Player implements Movable {
     this.collisionDamage = this.data.collisionDamage;
 
     this.invincibilityDuration = this.data.invincibilityDuration;
-    this.pushbackForce = this.data.pushbackForce;
+    this.knockbackPower = this.data.knockbackPower;
 
     // Animations
     this.animator = new AnimatorController(this.data.animations!, true);
@@ -179,7 +179,7 @@ export default class Player implements Movable {
     }
   }
 
-  applyPushback(x: number, y: number, force: number) {
+  applyKnockback(x: number, y: number, force: number) {
     this.pushVx = x * force;
     this.pushVy = y * force;
   }

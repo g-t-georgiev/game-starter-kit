@@ -223,6 +223,8 @@ export default class Game {
     this.uiManager.updateTimer(this.accumulatedTime);
 
     this.player.update(deltaTime, this.keys);
+    this.enemySpawner.update(deltaTime);
+    this.enemyManager.update(deltaTime, this.player);
     this.particlesManager.update(deltaTime);
 
     if (this.player.isDead()) {
@@ -233,9 +235,6 @@ export default class Game {
 
       return;
     }
-
-    this.enemySpawner.update(deltaTime);
-    this.enemyManager.update(deltaTime, this.player);
 
     this.collisionManager.update(this.player, this.enemyManager.activeEnemiesBuffer);
   }
@@ -285,16 +284,19 @@ export default class Game {
   }
 
   checkMissionConditions(): void {
-    if (this.state !== GAME_STATES.PLAYING) return;
-
-    if (this.missionCompleted) return;
-
     if (
+      this.state !== GAME_STATES.PLAYING ||
+      this.missionCompleted ||
+      this.player.isDead()
+    ) return;
+
+    const isMissionCompleted =
       this.enemiesKilled >= missionsData.killCount ||
-      this.accumulatedTime >= missionsData.surviveTime
-    ) {
-      this.missionCompleted = true;
-      GlobalEventEmitter.emit(EVENTS.MISSION_COMPLETED);
-    }
+      this.accumulatedTime >= missionsData.surviveTime;
+
+    if (!isMissionCompleted) return;
+
+    this.missionCompleted = true;
+    GlobalEventEmitter.emit(EVENTS.MISSION_COMPLETED);
   }
 }

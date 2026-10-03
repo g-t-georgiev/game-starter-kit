@@ -17,8 +17,8 @@ export default {
     // Collision
     collisionRadius: 22,
     invincibilityDuration: 0.6,
-    pushbackForce: 0,
-    pushbackImmune: true,
+    knockbackPower: 0,
+    knockbackResistance: 1.0,
     // Behavior
     behaviorType: "drift",
     // Visual
@@ -39,7 +39,10 @@ export default {
       },
     },
     animations: {
-      spritesheets: ["enemy_drifter_spritesheet0", "enemy_drifter_spritesheet1"],
+      spritesheets: [
+        "enemy_drifter_spritesheet0",
+        "enemy_drifter_spritesheet1"
+      ],
       frameWidth: 64,
       frameHeight: 48,
       initialState: "idle",
@@ -62,8 +65,8 @@ export default {
     // Collision
     collisionRadius: 16,
     invincibilityDuration: 0.6,
-    pushbackForce: 580,
-    pushbackImmune: false,
+    knockbackPower: 580,
+    knockbackResistance: 0.0,
     // Behavior
     behaviorType: "seek",
     // Visual
@@ -84,7 +87,10 @@ export default {
       },
     },
     animations: {
-      spritesheets: ["enemy_seeker_spritesheet0", "enemy_seeker_spritesheet1"],
+      spritesheets: [
+        "enemy_seeker_spritesheet0",
+        "enemy_seeker_spritesheet1"
+      ],
       frameWidth: 64,
       frameHeight: 64,
       initialState: "move",

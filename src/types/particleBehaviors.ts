@@ -8,7 +8,23 @@ export type ParticlePools = Record<ParticleType, ObjectPooler<Particle>>;
 
 export type ParticleBehaviorType = "radial" | "implosion";
 
-export interface ParticleConfig {
+export type ParticleShapeType = "rectangle" | "circle" | "image";
+
+interface BaseParticleShapeConfig<Shape extends ParticleShapeType> {
+  shape: Shape;
+}
+type CircleParticleShapeConfig = BaseParticleShapeConfig<"circle">;
+type RectangleParticleShapeConfig = BaseParticleShapeConfig<"rectangle">;
+type ImageParticleShapeConfig = BaseParticleShapeConfig<"image"> & {
+  imageName: string;
+}
+
+export type ParticleShapeConfig =
+  | CircleParticleShapeConfig
+  | RectangleParticleShapeConfig
+  | ImageParticleShapeConfig;
+
+export type ParticleConfig = {
   count: number;
   color: string;
   speed: number;
@@ -19,7 +35,7 @@ export interface ParticleConfig {
   shrink: boolean;
   gravity: Position;
   behaviorType: ParticleBehaviorType;
-}
+} & ParticleShapeConfig;
 
 export type ParticlesConfig = {
   [Type in ParticleType]: ParticleConfig;

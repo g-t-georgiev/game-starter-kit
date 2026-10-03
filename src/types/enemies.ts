@@ -38,7 +38,8 @@ export interface EnemyConfig<
   BehaviorType extends EnemyBehaviorType | readonly EnemyBehaviorType[] = EnemyBehaviorType | readonly EnemyBehaviorType[]
 > extends EntityConfig<EnemyState> {
   damage: number;
-  pushbackImmune: boolean;
+  /** Takes values between 0.0 and 1.0 */
+  knockbackResistance: number;
   behaviorType: BehaviorType;
   soundEffects?: EnemySounds<Type>;
   particleEffects?: EntityParticles<EnemyState>;

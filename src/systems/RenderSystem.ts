@@ -87,13 +87,23 @@ export default class RenderSystem {
     for (const particle of particles) {
       if (!particle.active) continue;
 
-      const x = particle.x - particle.size / 2;
-      const y = particle.y - particle.size / 2;
-
       this.context.save();
-      this.context.fillStyle = particle.color;
       this.context.globalAlpha = particle.opacity;
-      this.context.fillRect(x, y, particle.size, particle.size);
+
+      switch (particle.shape) {
+        case "image": {
+          this._drawImageParticle(particle);
+          break;
+        }
+        case "circle": {
+          this._drawCircleShapeParticle(particle);
+          break;
+        }
+        default: {
+          this._drawRectangleShapeParticle(particle);
+        }
+      }
+
       this.context.restore();
     }
   }
@@ -207,5 +217,32 @@ export default class RenderSystem {
     if (fill) this.context.fill();
 
     this.context.restore();
+  }
+
+  private _drawRectangleShapeParticle(particle: Particle) {
+    const x = particle.x - particle.size / 2;
+    const y = particle.y - particle.size / 2;
+    this.context.fillStyle = particle.color;
+    this.context.fillRect(x, y, particle.size, particle.size);
+  }
+
+  private _drawCircleShapeParticle(particle: Particle) {
+    this.context.fillStyle = particle.color;
+    this.context.beginPath();
+    this.context.arc(particle.x, particle.y, particle.size / 2, 0, Math.PI * 2);
+    this.context.fill();
+  }
+
+  private _drawImageParticle(particle: Particle) {
+    const asset = particle.cachedAssetKey ? this.imageManager.get(particle.cachedAssetKey) : null;
+
+    if (!asset) {
+      this._drawRectangleShapeParticle(particle);
+      return;
+    }
+
+    const x = particle.x - particle.size / 2;
+    const y = particle.y - particle.size / 2;
+    this.context.drawImage(asset, x, y, particle.size, particle.size);
   }
 }

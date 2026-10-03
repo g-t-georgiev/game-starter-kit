@@ -38,8 +38,15 @@ export default class CollisionManager {
 
           if (enemy.isDead()) {
             this.eventEmitter.emit(EVENTS.ENEMY_DIED, enemy);
-          } else if (!enemy.data.pushbackImmune) {
-            enemy.applyPushback(-nx, -ny, enemy.pushbackForce);
+            return;
+          }
+
+          const resistance = enemy.data.knockbackResistance || 0;
+          const appliedForce = player.knockbackPower * (1 - resistance);
+
+          console.log(appliedForce);
+          if (appliedForce > 0) {
+            enemy.applyKnockback(-nx, -ny, appliedForce);
           }
         }
 
@@ -50,12 +57,13 @@ export default class CollisionManager {
 
           if (player.isDead()) {
             this.eventEmitter.emit(EVENTS.PLAYER_DIED);
-
             return;
           }
 
-          if (enemy.data.pushbackImmune) {
-            player.applyPushback(nx, ny, player.pushbackForce);
+          const enemyResistance = enemy.data.knockbackResistance || 0;
+
+          if (enemyResistance >= 0.8) {
+            player.applyKnockback(nx, ny, player.knockbackPower);
           }
         }
       }

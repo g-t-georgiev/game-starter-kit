@@ -48,7 +48,7 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
 
   collisionRadius: number;
   invincibilityDuration: number;
-  pushbackForce: number;
+  knockbackPower: number;
 
   pushVx = 0;
   pushVy = 0;
@@ -83,7 +83,7 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
     // Collision
     this.collisionRadius = this.data.collisionRadius;
     this.invincibilityDuration = this.data.invincibilityDuration;
-    this.pushbackForce = this.data.pushbackForce;
+    this.knockbackPower = this.data.knockbackPower;
 
     // Animations
     this.animator = new AnimatorController<EnemyState>(this.data.animations!, true);
@@ -200,7 +200,7 @@ export default class Enemy<TEnemy extends EnemyType = EnemyType> implements Mova
     }
   }
 
-  applyPushback(x: number, y: number, force: number) {
+  applyKnockback(x: number, y: number, force: number) {
     this.pushVx = x * force;
     this.pushVy = y * force;
   }

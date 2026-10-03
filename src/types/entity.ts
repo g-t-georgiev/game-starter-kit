@@ -39,7 +39,7 @@ export interface EntityConfig<State extends string = EntityState> {
   maxHealth: number;
   collisionRadius: number;
   invincibilityDuration: number;
-  pushbackForce: number;
+  knockbackPower: number;
   color: string;
   soundEffects?: Partial<Record<State, string>>;
   particleEffects?: Partial<EntityParticles<State>>;

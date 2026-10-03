@@ -1,5 +1,5 @@
 import type { Position } from "@/types/utils";
-import type { ParticleBehavior, ParticleConfig } from "@/types/particleBehaviors";
+import type { ParticleBehavior, ParticleConfig, ParticleShapeType } from "@/types/particleBehaviors";
 
 export default class Particle {
   active: boolean = false;
@@ -18,10 +18,12 @@ export default class Particle {
   fade: boolean = false;
   shrink: boolean = false;
   behavior: ParticleBehavior | null = null;
+  shape: ParticleShapeType = "rectangle";
+  cachedAssetKey?: string;
 
   constructor(
     config?: Partial<ParticleConfig>,
-    behavior?: ParticleBehavior
+    behavior?: ParticleBehavior,
   ) {
 
     if (config?.lifetime != null) this.lifetime = config.lifetime;
@@ -44,6 +46,17 @@ export default class Particle {
     if (config?.gravity != null) this.gravity = { ...config.gravity };
 
     if (behavior) this.behavior = behavior;
+
+    if (config?.shape) {
+      if (config.shape !== "image") {
+        this.shape = config.shape;
+      } else if (config.imageName) {
+        this.shape = config.shape;
+        this.cachedAssetKey = config.imageName;
+      } else {
+        console.warn("Missing particle asset key for an \"image\" particle type. Falls back to simple rectangle shape.");
+      }
+    }
   }
 
   update(deltaTime: number) {

@@ -11,12 +11,15 @@ export default {
   collisionRadius: 24,
   collisionDamage: 1,
   invincibilityDuration: 2,
-  pushbackForce: 520,
+  knockbackPower: 520,
   // Visual
   color: "#1a1a2e",
   strokeColor: "#ffffff",
   animations: {
-    spritesheets: { name: "player_spritesheet0", path: "player_spritesheet0.png" },
+    spritesheets: {
+      name: "player_spritesheet0",
+      path: "player_spritesheet0.png"
+    },
     frameWidth: 64,
     frameHeight: 64,
     initialState: "idle",

@@ -12,6 +12,7 @@ export default {
     shrink: true,
     gravity: { x: 0, y: 250 },
     behaviorType: "radial",
+    shape: "rectangle",
   },
   smoke: {
     count: 12,
@@ -24,6 +25,7 @@ export default {
     shrink: false,
     gravity: { x: 0, y: -250 },
     behaviorType: "radial",
+    shape: "circle",
   },
   implosion: {
     count: 40,
@@ -36,5 +38,7 @@ export default {
     shrink: true,
     gravity: { x: 0, y: 0 },
     behaviorType: "implosion",
+    shape: "image",
+    imageName: "particle_star",
   }
 } as const satisfies ParticlesConfig;
