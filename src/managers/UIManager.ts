@@ -1,10 +1,13 @@
 import type EventEmitter from "@/core/EventEmitter";
 import { EVENTS, GAME_SOUNDS } from "@/core/constants";
+import missionData from "@/data/missionData";
 
 const UI_ELEMS = Object.freeze({
   HUD: "hud",
   TIMER: "timer",
   HEALTHBAR: "healthBarFill",
+  MISSIONBRIEFING: "missionBriefing",
+  KILLCOUNTER: "killCounter",
   MAIN_MENU: "mainMenu",
   PAUSE_MENU: "pauseMenu",
   GAME_OVER_MENU: "gameOverMenu",
@@ -13,7 +16,14 @@ const UI_ELEMS = Object.freeze({
 });
 
 
-type HudTypes = Pick<typeof UI_ELEMS, "HUD" | "HEALTHBAR" | "TIMER">;
+type HudTypes = Pick<
+  typeof UI_ELEMS,
+  | "HUD"
+  | "HEALTHBAR"
+  | "TIMER"
+  | "MISSIONBRIEFING"
+  | "KILLCOUNTER"
+>;
 type PanelTypes = Omit<typeof UI_ELEMS, keyof HudTypes>;
 type PanelType = keyof PanelTypes;
 
@@ -21,6 +31,8 @@ const {
   HUD,
   TIMER,
   HEALTHBAR,
+  KILLCOUNTER,
+  MISSIONBRIEFING,
   ...panels
 } = UI_ELEMS;
 
@@ -40,6 +52,8 @@ export default class UIManager {
   private uiElementsMap: Map<string, HTMLElement> = new Map();
   private buttonActionsMap: Map<ButtonActionId, (() => unknown)> = new Map();
 
+  private missionBriefingDisplayTimeout: number | null = null;
+
   constructor(eventEmitter: EventEmitter) {
     this.eventEmitter = eventEmitter;
 
@@ -48,6 +62,10 @@ export default class UIManager {
     this.buttonActionsMap.set(BUTTON_ACTIONS.QUIT, () => this.eventEmitter.emit(EVENTS.GAME_MENU));
 
     this._addElementToCache(TIMER);
+    this._addElementToCache(HEALTHBAR);
+    this._addElementToCache(KILLCOUNTER);
+    this._addElementToCache(MISSIONBRIEFING);
+
     this._attachEventListeners();
   }
 
@@ -87,6 +105,8 @@ export default class UIManager {
       button.addEventListener("click", (e) => this._onButtonClick(e, button));
       button.addEventListener("mouseenter", (e) => this._onButtonHover(e, button));
     });
+
+    this.eventEmitter.on(EVENTS.ENEMY_KILLED_COUNT, (count) => this.updateKillCounter(count));
   }
 
   getElement(name: string) {
@@ -129,6 +149,10 @@ export default class UIManager {
     const willForceToggle = force ?? !hud.classList.contains("active");
 
     hud.classList.toggle("active", willForceToggle);
+
+    if (willForceToggle) return;
+
+    this.hideMissionBriefing();
   }
 
   updateTimer(time: number): void {
@@ -166,5 +190,47 @@ export default class UIManager {
 
   showMissionCompletedMenu(): void {
     this.showPanel(UI_ELEMS.MISSION_COMPLETED_MENU);
+  }
+
+  showMissionBriefing() {
+    const missionBriefing = this.getElement(MISSIONBRIEFING);
+
+    if (!missionBriefing) return;
+
+    if (this.missionBriefingDisplayTimeout) {
+      clearTimeout(this.missionBriefingDisplayTimeout);
+    }
+
+    missionBriefing.textContent = this.buildMissionBriefingText();
+    missionBriefing.classList.add("visible");
+    this.missionBriefingDisplayTimeout = setTimeout(() => {
+      missionBriefing.classList.remove("visible");
+      this.missionBriefingDisplayTimeout = null;
+    }, missionData.displayDuration);
+  }
+
+  hideMissionBriefing() {
+    if (this.missionBriefingDisplayTimeout) {
+      clearTimeout(this.missionBriefingDisplayTimeout);
+    }
+
+    const missionBriefing = this.getElement(MISSIONBRIEFING);
+
+    if (!missionBriefing) return;
+
+    missionBriefing.classList.remove("visible");
+    this.missionBriefingDisplayTimeout = null;
+  }
+
+  buildMissionBriefingText() {
+    return `Destroy ${missionData.killCount} enemies or survive ${missionData.surviveTime} seconds.`;
+  }
+
+  updateKillCounter(count: number) {
+    const killCounter = this.getElement(KILLCOUNTER);
+
+    if (!killCounter) return;
+
+    killCounter.textContent = `${count} / ${missionData.killCount}`;
   }
 }

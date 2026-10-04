@@ -44,7 +44,6 @@ export default class CollisionManager {
           const resistance = enemy.data.knockbackResistance || 0;
           const appliedForce = player.knockbackPower * (1 - resistance);
 
-          console.log(appliedForce);
           if (appliedForce > 0) {
             enemy.applyKnockback(-nx, -ny, appliedForce);
           }

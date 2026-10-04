@@ -202,6 +202,8 @@ export default class Game {
 
     this.player.reset();
     this.uiManager.updateHealthBar(this.player.health, this.player.maxHealth);
+    this.uiManager.showMissionBriefing();
+    this.uiManager.updateKillCounter(this.enemiesKilled);
 
     this.enemyManager.reset();
     this.enemySpawner.reset();
