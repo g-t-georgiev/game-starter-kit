@@ -147,7 +147,7 @@ export default class Player implements Movable {
   }
 
   private _updateInvincibility(deltaTime: number) {
-    if (!this.invincible) return;
+    if (!this.invincible || this.isDead()) return;
 
     this.invincibilityTimer -= deltaTime;
 

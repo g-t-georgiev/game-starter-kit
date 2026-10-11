@@ -1,15 +1,15 @@
 import type { PlayerConfig } from "@/types/player";
 
-export default {
+const playerData: PlayerConfig = {
   // Dimensions
   width: 64,
   height: 64,
   // Statistics
   speed: 90,
-  maxHealth: 12,
+  maxHealth: 50,
   // Collisions
   collisionRadius: 24,
-  collisionDamage: 1,
+  collisionDamage: 3,
   invincibilityDuration: 2,
   knockbackPower: 520,
   // Visual
@@ -33,4 +33,6 @@ export default {
       death: { row: 20, frameCount: 6, frameInterval: 0.6, startFrame: 0, loop: false, locked: true },
     },
   }
-} as const satisfies PlayerConfig;
+} as const;
+
+export default playerData;

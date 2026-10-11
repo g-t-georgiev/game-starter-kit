@@ -52,27 +52,21 @@ export default class ImageManager {
   load(name: string, path: string) {
     return new Promise<void>((resolve) => {
       const img = new Image();
-
-      img.src = path;
-
       const asset = { img, loaded: false };
 
       this.images.set(name, asset);
 
       img.addEventListener("load", () => {
         asset.loaded = true;
-
-        // console.log(`[DEV] Image loading successful: ${name}`);
-
         resolve();
       });
 
       img.addEventListener("error", () => {
-        console.error(`Image loading failed: ${name} (will use fallback)`);
-
+        console.warn(`Image loading failed: ${name} (will use fallback)`);
         resolve();
       });
 
+      img.src = path;
     });
   }
 
@@ -80,14 +74,11 @@ export default class ImageManager {
     const imageAsset = this.images.get(name);
 
     if (!imageAsset) {
-      // console.warn(`[DEV] Couldn't find image asset: ${name}. Try load it first or inspect if there's a problem with loading.`);
-
+      console.warn(`Couldn't find image asset: ${name}.`);
       return null;
     }
 
     if (imageAsset.loaded) return imageAsset.img;
-
-    // console.warn(`[DEV] Image asset ${name} is still loading. Will use a fallback for the moment.`);
 
     return null;
   }

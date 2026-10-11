@@ -1,6 +1,6 @@
 import type { ParticlesConfig } from "@/types/particleBehaviors";
 
-export default {
+const particlesData: ParticlesConfig = {
   sparks: {
     count: 12,
     color: "#ffffff",
@@ -41,4 +41,6 @@ export default {
     shape: "image",
     imageName: "particle_star",
   }
-} as const satisfies ParticlesConfig;
+} as const;
+
+export default particlesData;

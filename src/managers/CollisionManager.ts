@@ -34,12 +34,12 @@ export default class CollisionManager {
         const enemyDamage = enemy.takeDamage(player.collisionDamage);
 
         if (enemyDamage) {
-          this.eventEmitter.emit(EVENTS.ENEMY_DAMAGED, enemy);
-
           if (enemy.isDead()) {
             this.eventEmitter.emit(EVENTS.ENEMY_DIED, enemy);
             return;
           }
+
+          this.eventEmitter.emit(EVENTS.ENEMY_DAMAGED, enemy);
 
           const resistance = enemy.data.knockbackResistance || 0;
           const appliedForce = player.knockbackPower * (1 - resistance);

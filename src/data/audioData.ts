@@ -1,4 +1,5 @@
-export default [
+const audioData = [
+  // Game sounds
   { name: "pause", path: "pause.mp3" },
   { name: "unpause", path: "unpause.mp3" },
   { name: "button_hover", path: "button_hover.mp3" },
@@ -12,3 +13,5 @@ export default [
   { name: "enemy_drifter_hit", path: "enemy_drifter_hit.mp3" },
   { name: "enemy_drifter_death", path: "enemy_drifter_death.mp3" },
 ];
+
+export default audioData;

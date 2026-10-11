@@ -29,25 +29,35 @@ import missionsData from "@/data/missionData";
 
 export default class Game {
   canvas: HTMLCanvasElement;
+
   imageManager: ImageManager;
   soundManager: SoundManager;
+
   uiManager: UIManager;
+
   enemyManager: EnemyManager;
   enemySpawner: EnemySpawner;
+
   renderSystem: RenderSystem;
+
   collisionSystem: CollisionSystem;
   collisionManager: CollisionManager;
   particlesManager: ParticleManager;
+
   player: Player;
+
   lastTime = 0;
   accumulatedTime = 0;
+
   state: GameState = GAME_STATES.MENU;
+
   debug = false;
   keys: Record<string, boolean> = {};
-  enemiesKilled: number = 0;
 
   /** Mission complete status flag. */
+  enemiesKilled: number = 0;
   missionCompleted: boolean = false;
+  missionBriefingEndsAt: number | null = null;
 
   constructor() {
     this.canvas = document.querySelector<HTMLCanvasElement>("#gameCanvas")!;
@@ -69,25 +79,22 @@ export default class Game {
     this.init();
   }
   async init() {
-    const DEBUG_LOADING_DEFER = 2000;
     await Promise.all([
       // Handle assets loading here
       this.imageManager.loadAll(),
       this.soundManager.loadAll(),
-      // Test loading screen
-      // TODO: Remove later
-      new Promise((r) => setTimeout(r, DEBUG_LOADING_DEFER)),
     ]);
 
     // Event listeners
     GlobalEventEmitter.on(EVENTS.GAME_START, () => this.startGame());
     GlobalEventEmitter.on(EVENTS.GAME_MENU, () => this.returnToMenu());
-    GlobalEventEmitter.on(EVENTS.GAME_PAUSE, () => this.pause());
     GlobalEventEmitter.on(EVENTS.GAME_RESUME, () => this.resume());
     GlobalEventEmitter.on(EVENTS.MISSION_COMPLETED, () => this.checkMissionComplete());
 
     GlobalEventEmitter.on(EVENTS.PLAYER_DAMAGED, (health, maxHealth) => {
-      GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, PLAYER_SOUNDS.Damaged);
+      if (!this.player.isDead()) {
+        GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, PLAYER_SOUNDS.Damaged);
+      }
       this.uiManager.updateHealthBar(health, maxHealth);
     });
 
@@ -105,7 +112,7 @@ export default class Game {
 
     this.setupResize();
     this.setupInput();
-    this.setupGameLoop();
+    this.startGameLoop();
   }
 
   resizeCanvas(): void {
@@ -128,14 +135,16 @@ export default class Game {
     this.canvas.style.width = w + "px";
     this.canvas.style.height = h + "px";
     this.canvas.style.margin = `${GAME_VIEWPORT_MARGIN}px`;
+
+    this.renderSystem.applySettings();
   }
 
   setupInput(): void {
     window.addEventListener("keydown", (e: KeyboardEvent) => {
       this.keys[e.key.toLowerCase()] = true;
 
-      // "Esc" toggles pause
-      if (e.key === "Escape") {
+      // Escape key ("Esc") toggles pause
+      if (e.key === "Escape" && !e.repeat) {
         if (this.state === GAME_STATES.PLAYING) {
           this.pause();
         } else if (this.state === GAME_STATES.PAUSED) {
@@ -143,8 +152,8 @@ export default class Game {
         }
       }
 
-      // ` toggles debug mode
-      if (e.key === "`") {
+      // Back tick key ("`") toggles debug mode
+      if (e.key === "`" && !e.repeat) {
         this.debug = !this.debug;
       }
     });
@@ -164,7 +173,7 @@ export default class Game {
     });
   }
 
-  setupGameLoop(): void {
+  startGameLoop(): void {
     requestAnimationFrame((t) => {
       this.lastTime = t;
 
@@ -172,16 +181,20 @@ export default class Game {
     });
   }
 
-  private gameLoop: FrameRequestCallback = (timestamp: number) => {
+  private gameLoop: FrameRequestCallback = (t: number) => {
     requestAnimationFrame(this.gameLoop);
 
-    const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.1);
+    const deltaTime = Math.min((t - this.lastTime) / 1000, 0.1);
 
-    this.lastTime = timestamp;
-
-    this.checkMissionConditions();
+    this.lastTime = t;
 
     this.update(deltaTime);
+    this.checkMissionConditions();
+
+    if (this.missionBriefingEndsAt !== null && this.accumulatedTime >= this.missionBriefingEndsAt) {
+      this.uiManager.hideMissionBriefing();
+      this.missionBriefingEndsAt = null;
+    }
 
     this.renderSystem.render(
       this.state,
@@ -195,27 +208,29 @@ export default class Game {
   startGame(): void {
     this.state = GAME_STATES.PLAYING;
 
+    this.keys = {};
+    this.accumulatedTime = 0;
+    this.lastTime = performance.now();
+
     GlobalEventEmitter.emit(EVENTS.SOUND_PLAY, GAME_SOUNDS.GameStart);
 
     this.uiManager.hideAllPanels();
     this.uiManager.toggleHud(true);
 
-    this.player.reset();
+    this.enemiesKilled = 0;
+    this.missionCompleted = false;
+
     this.uiManager.updateHealthBar(this.player.health, this.player.maxHealth);
-    this.uiManager.showMissionBriefing();
     this.uiManager.updateKillCounter(this.enemiesKilled);
 
+    this.uiManager.showMissionBriefing();
+    this.missionBriefingEndsAt = this.accumulatedTime + missionsData.displayDuration;
+
+    this.player.reset();
     this.enemyManager.reset();
     this.enemySpawner.reset();
 
     this.particlesManager.reset();
-
-    this.enemiesKilled = 0;
-
-    this.missionCompleted = false;
-
-    this.accumulatedTime = 0;
-    this.lastTime = performance.now();
   }
 
   update(deltaTime: number): void {
@@ -225,7 +240,6 @@ export default class Game {
     this.uiManager.updateTimer(this.accumulatedTime);
 
     this.player.update(deltaTime, this.keys);
-    this.enemySpawner.update(deltaTime);
     this.enemyManager.update(deltaTime, this.player);
     this.particlesManager.update(deltaTime);
 
@@ -238,6 +252,7 @@ export default class Game {
       return;
     }
 
+    this.enemySpawner.update(deltaTime);
     this.collisionManager.update(this.player, this.enemyManager.activeEnemiesBuffer);
   }
 

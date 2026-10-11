@@ -25,9 +25,12 @@ export default class RenderSystem {
 
   constructor(canvas: HTMLCanvasElement, imageManager: ImageManager) {
     this.context = canvas.getContext("2d")!;
-    this.context.imageSmoothingEnabled = false;
-
     this.imageManager = imageManager;
+    this.applySettings();
+  }
+
+  applySettings() {
+    this.context.imageSmoothingEnabled = false;
   }
 
   render(

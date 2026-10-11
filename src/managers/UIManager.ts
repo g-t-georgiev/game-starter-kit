@@ -52,7 +52,6 @@ export default class UIManager {
   private eventEmitter: EventEmitter;
   private uiElementsMap: Map<string, HTMLElement> = new Map();
   private buttonActionsMap: Map<ButtonActionId, () => unknown> = new Map();
-  private missionBriefingDisplayTimeout: number | null = null;
 
   constructor(eventEmitter: EventEmitter) {
     this.eventEmitter = eventEmitter;
@@ -127,16 +126,18 @@ export default class UIManager {
   }
 
   hideAllPanels(): void {
-    PANELS_ID_MAP.forEach((name) => {
-      const panel = this.getElement(name);
-      panel?.classList.remove("active");
-    });
+    PANELS_ID_MAP.forEach((name) => this.hidePanel(name));
   }
 
   showPanel(name: UIPanelId): void {
     this.hideAllPanels();
     const toShow = this.getElement(name);
     toShow?.classList.add("active");
+  }
+
+  hidePanel(name: UIPanelId): void {
+    const toHide = this.getElement(name);
+    toHide?.classList.remove("active");
   }
 
   toggleHud(force?: boolean): void {
@@ -173,7 +174,7 @@ export default class UIManager {
     const healthBar = this.getElement(HEALTHBAR);
     if (!healthBar) return;
 
-    const ratio = Math.max(0, health / maxHealth);
+    const ratio = Math.min(1, Math.max(0, health / maxHealth));
     healthBar.style.setProperty("--health-pct", String(ratio));
   }
 
@@ -188,27 +189,13 @@ export default class UIManager {
   showMissionBriefing(): void {
     const missionBriefing = this.getElement(MISSIONBRIEFING);
     if (!missionBriefing) return;
-
-    if (this.missionBriefingDisplayTimeout) {
-      clearTimeout(this.missionBriefingDisplayTimeout);
-    }
-
     missionBriefing.textContent = this.buildMissionBriefingText();
     missionBriefing.classList.add("visible");
-
-    this.missionBriefingDisplayTimeout = window.setTimeout(() => {
-      missionBriefing.classList.remove("visible");
-      this.missionBriefingDisplayTimeout = null;
-    }, missionData.displayDuration);
   }
 
   hideMissionBriefing(): void {
-    if (this.missionBriefingDisplayTimeout) {
-      clearTimeout(this.missionBriefingDisplayTimeout);
-      this.missionBriefingDisplayTimeout = null;
-    }
-
     const missionBriefing = this.getElement(MISSIONBRIEFING);
+    if (!missionBriefing) return;
     missionBriefing?.classList.remove("visible");
   }
 

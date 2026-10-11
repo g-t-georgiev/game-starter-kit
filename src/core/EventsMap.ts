@@ -4,7 +4,6 @@ import type Enemy from "@/entities/Enemy";
 export type EventsMap = {
   [EVENTS.GAME_START]: (() => void);
   [EVENTS.GAME_MENU]: (() => void);
-  [EVENTS.GAME_PAUSE]: (() => void);
   [EVENTS.GAME_RESUME]: (() => void);
   [EVENTS.SOUND_PLAY]: ((name: string) => void);
   [EVENTS.ENEMY_DAMAGED]: ((enemy: Enemy) => void);

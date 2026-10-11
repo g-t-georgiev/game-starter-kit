@@ -27,7 +27,7 @@ export default class ObjectPooler<T extends Poolable> {
       obj = this.inactiveEntities.pop()!;
     } else {
       obj = this.factoryFn();
-      console.warn(`[DEV] Pool expanded, crearted new object.`);
+      // console.warn(`[DEV] Pool expanded, crearted new object.`);
     }
 
     this.activeEntities.push(obj);

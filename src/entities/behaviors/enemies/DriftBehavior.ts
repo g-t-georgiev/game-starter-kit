@@ -37,7 +37,11 @@ export default class DriftBehavior<
     if (this.firstMove) {
       // Upon initial move select a moving trajectory towards the current position of a target
       this.firstMove = false;
-      this.angle = Math.atan2(target.y - source.y, target.x - source.x);
+
+      const dx = (target.x + target.width / 2) - (source.x + source.width / 2);
+      const dy = (target.y + target.height / 2) - (source.y + source.height / 2);
+
+      this.angle = Math.atan2(dy, dx);
     }
 
     this.phaseTimer += deltaTime;

@@ -8,7 +8,6 @@ import ParticleBehaviorFactory from "@/entities/behaviors/particles/ParticleBeha
 
 export default class ParticleManager {
   private pools: ParticlePools;
-  private eventEmitter: EventEmitter;
 
   public readonly activeParticlesBuffer: Particle[] = [];
 
@@ -25,8 +24,7 @@ export default class ParticleManager {
       return pool;
     }, {} as ParticlePools);
 
-    this.eventEmitter = eventEmitter;
-    this._attachEventListeners(this.eventEmitter);
+    this._attachEventListeners(eventEmitter);
   }
 
   private _attachEventListeners(eventEmitter: EventEmitter) {

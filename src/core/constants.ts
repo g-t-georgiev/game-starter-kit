@@ -29,7 +29,7 @@ export const EVENTS = Object.freeze({
   SOUND_STOP: "sound:stop",
   // States
   GAME_START: "game:start",
-  GAME_PAUSE: "game:pause",
+  // GAME_PAUSE: "game:pause",
   GAME_RESUME: "game:resume",
   GAME_MENU: "game:menu",
   // Player

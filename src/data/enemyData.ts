@@ -5,14 +5,14 @@ export const EnemyTypes: TEnemyTypes = {
   Seeker: "seeker",
 };
 
-export default {
+const enemiesData: EnemiesConfig = {
   drifter: {
     // Dimensions
     width: 64,
     height: 48,
     // Statistics
     speed: 30,
-    maxHealth: 8,
+    maxHealth: 15,
     damage: 2,
     // Collision
     collisionRadius: 22,
@@ -60,7 +60,7 @@ export default {
     height: 64,
     // Statistics
     speed: 60,
-    maxHealth: 5,
+    maxHealth: 10,
     damage: 1,
     // Collision
     collisionRadius: 16,
@@ -101,4 +101,6 @@ export default {
       }
     }
   } as const,
-} satisfies EnemiesConfig;
+} as const;
+
+export default enemiesData;
