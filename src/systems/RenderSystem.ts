@@ -168,8 +168,8 @@ export default class RenderSystem {
   renderEnemyHealthBar(enemy: Enemy): void {
     const ratio = enemy.health / enemy.maxHealth;
 
-    const x = enemy.x;
-    const y = enemy.y - HEALTHBAR_OFFSET - HEALTHBAR_HEIGHT;
+    const x = this._snap(enemy.x);
+    const y = this._snap(enemy.y - HEALTHBAR_OFFSET - HEALTHBAR_HEIGHT);
     const w = enemy.width;
 
     this.context.fillStyle = HEALTHBAR_BACKGROUND;

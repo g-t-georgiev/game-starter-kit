@@ -182,3 +182,8 @@ button:hover {
   color: #4a9eff;
   text-shadow: 0 0 20px rgba(74, 158, 255, 0.9);
 }
+
+.ui-panel .controls-list {
+  margin-top: 20px;
+  font-size: 12px;
+}

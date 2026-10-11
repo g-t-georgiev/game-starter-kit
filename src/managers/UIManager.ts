@@ -1,6 +1,7 @@
 import type EventEmitter from "@/core/EventEmitter";
 import { EVENTS, GAME_SOUNDS } from "@/core/constants";
 import missionData from "@/data/missionData";
+import controlsData from "@/data/controlsData";
 
 const UI_ELEMS = Object.freeze({
   HUD: "hud",
@@ -65,6 +66,7 @@ export default class UIManager {
     this.addElementToCache(KILLCOUNTER);
     this.addElementToCache(MISSIONBRIEFING);
 
+    this.renderControlsList();
     this.attachEventListeners();
   }
 
@@ -208,5 +210,12 @@ export default class UIManager {
     if (!killCounter) return;
 
     killCounter.textContent = `${count} / ${missionData.killCount}`;
+  }
+
+  private renderControlsList() {
+    const html = controlsData.map((c) => `<div>${c.key} - ${c.label}</div>`).join("");
+    document.querySelectorAll("[data-controls-list]").forEach((el) => {
+      el.innerHTML = html;
+    });
   }
 }
