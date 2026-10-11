@@ -13,8 +13,17 @@
       "@/entities/*": [
         "./src/entities/*"
       ],
+      "@/managers/*": [
+        "./src/managers/*"
+      ],
+      "@/systems/*": [
+        "./src/systems/*"
+      ],
       "@/types/*": [
         "./src/types/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
       ]
     },
     "target": "es2023",
