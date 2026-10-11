@@ -94,11 +94,8 @@ export default class ParticleManager {
       particle.gravity.x = data.gravity.x;
       particle.gravity.y = data.gravity.y;
       particle.color = color;
-
-      if (!particle.behavior) {
-        const behavior = ParticleBehaviorFactory.create(data.behaviorType);
-        particle.behavior = behavior;
-      }
+      particle.behavior ??= ParticleBehaviorFactory.create(data.behaviorType);
+      particle.layer = data.layer ?? particle.layer;
 
       ParticleBehaviorFactory.init(particle.behavior, x, y);
     }

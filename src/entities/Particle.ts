@@ -1,5 +1,5 @@
 import type { Position } from "@/types/utils";
-import type { ParticleBehavior, ParticleConfig, ParticleShapeType } from "@/types/particleBehaviors";
+import type { ParticleBehavior, ParticleConfig, ParticleRenderLayer, ParticleShapeType } from "@/types/particleBehaviors";
 
 export default class Particle {
   private config: ParticleConfig;
@@ -9,19 +9,29 @@ export default class Particle {
   y: number = 0;
   vx: number = 0;
   vy: number = 0;
+
   lifetime: number = 1;
   age: number = 0;
+
   size: number = 4;
   baseSize: number = 4;
+
   opacity: number = 1;
   baseOpacity: number = 1;
   color: string = "#ffffff";
+
   gravity: Position = { x: 0, y: 0 };
+
   fade: boolean = false;
   shrink: boolean = false;
+
   behavior: ParticleBehavior | null = null;
+
   shape: ParticleShapeType = "rectangle";
   cachedAssetKey?: string;
+
+  /** By default set to "foreground". */
+  layer: ParticleRenderLayer;
 
   constructor(
     config: ParticleConfig,
@@ -41,6 +51,8 @@ export default class Particle {
     this.gravity = { ...config.gravity };
 
     if (behavior) this.behavior = behavior;
+
+    this.layer = config.layer ?? "foreground";
 
     if (config.shape !== "image") {
       this.shape = config.shape;
@@ -86,5 +98,7 @@ export default class Particle {
 
     this.size = this.baseSize;
     this.opacity = this.baseOpacity;
+
+    this.layer = this.config.layer ?? "foreground";
   }
 }

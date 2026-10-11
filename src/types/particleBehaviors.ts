@@ -3,6 +3,8 @@ import type ObjectPooler from "@/utils/ObjectPooler";
 import type Particle from "@/entities/Particle";
 import type { RadialBehavior, ImplosionBehavior } from "@/entities/behaviors/particles";
 
+export type ParticleRenderLayer = "background" | "foreground";
+
 export type ParticleType = "sparks" | "smoke" | "implosion";
 export type ParticlePools = Record<ParticleType, ObjectPooler<Particle>>;
 
@@ -35,6 +37,7 @@ export type ParticleConfig = {
   shrink: boolean;
   gravity: Position;
   behaviorType: ParticleBehaviorType;
+  layer?: ParticleRenderLayer;
 } & ParticleShapeConfig;
 
 export type ParticlesConfig = {

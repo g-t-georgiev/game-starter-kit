@@ -18,6 +18,7 @@ import {
   type GameState,
 } from "@/core/constants";
 import type Particle from "@/entities/Particle";
+import type { ParticleRenderLayer } from "@/types/particleBehaviors";
 
 export default class RenderSystem {
   private context: CanvasRenderingContext2D;
@@ -51,9 +52,10 @@ export default class RenderSystem {
     this.context.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     this.renderGrid();
+    this.renderParticles(particles, "background");
     this.renderPlayer(player);
     this.renderEnemies(enemies);
-    this.renderParticles(particles);
+    this.renderParticles(particles, "foreground");
 
     if (debug) this.renderDebugOverlay(player, enemies);
   }
@@ -70,10 +72,13 @@ export default class RenderSystem {
     const spritesheet = frame?.spritesheet ? this.imageManager.get(frame.spritesheet) : null;
 
     if (frame && spritesheet) {
+      const x = this._snap(player.x);
+      const y = this._snap(player.y);
+
       this.context.drawImage(
         spritesheet,
         frame.sx, frame.sy, frame.sw, frame.sh,
-        player.x, player.y, player.width, player.height
+        x, y, player.width, player.height
       );
     } else {
       // fallback
@@ -86,9 +91,9 @@ export default class RenderSystem {
     this.context.globalAlpha = 1;
   }
 
-  renderParticles(particles: Particle[]) {
+  renderParticles(particles: Particle[], layer: ParticleRenderLayer) {
     for (const particle of particles) {
-      if (!particle.active) continue;
+      if (!particle.active || particle.layer !== layer) continue;
 
       this.context.save();
       this.context.globalAlpha = particle.opacity;
@@ -126,9 +131,12 @@ export default class RenderSystem {
       const spritesheet = frame?.spritesheet ? this.imageManager.get(frame.spritesheet) : null;
 
       if (frame && spritesheet) {
+        const x = this._snap(enemy.x);
+        const y = this._snap(enemy.y);
+
         this.context.save();
         if (enemy.flipHorizontal) {
-          this.context.translate(enemy.x + enemy.width, enemy.y);
+          this.context.translate(x + enemy.width, y);
           this.context.scale(-1, 1);
           this.context.drawImage(
             spritesheet,
@@ -139,7 +147,7 @@ export default class RenderSystem {
           this.context.drawImage(
             spritesheet,
             frame.sx, frame.sy, frame.sw, frame.sh,
-            enemy.x, enemy.y, enemy.width, enemy.height
+            x, y, enemy.width, enemy.height
           );
         }
         this.context.restore();
@@ -244,8 +252,12 @@ export default class RenderSystem {
       return;
     }
 
-    const x = particle.x - particle.size / 2;
-    const y = particle.y - particle.size / 2;
+    const x = this._snap(particle.x - particle.size / 2);
+    const y = this._snap(particle.y - particle.size / 2);
     this.context.drawImage(asset, x, y, particle.size, particle.size);
+  }
+
+  private _snap(value: number) {
+    return Math.round(value);
   }
 }

@@ -13,6 +13,7 @@ const particlesData: ParticlesConfig = {
     gravity: { x: 0, y: 250 },
     behaviorType: "radial",
     shape: "rectangle",
+    layer: "background",
   },
   smoke: {
     count: 12,
@@ -26,13 +27,14 @@ const particlesData: ParticlesConfig = {
     gravity: { x: 0, y: -250 },
     behaviorType: "radial",
     shape: "circle",
+    layer: "background",
   },
   implosion: {
     count: 40,
     color: "#ffffff",
     speed: 600,
     lifetime: 2.0,
-    size: 10,
+    size: 17,
     opacity: 1,
     fade: false,
     shrink: true,
@@ -40,6 +42,7 @@ const particlesData: ParticlesConfig = {
     behaviorType: "implosion",
     shape: "image",
     imageName: "particle_star",
+    layer: "foreground",
   }
 } as const;
 
