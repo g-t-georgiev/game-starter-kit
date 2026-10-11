@@ -18,6 +18,7 @@ import {
   type GameState,
 } from "@/core/constants";
 import type Particle from "@/entities/Particle";
+import type { ParticleRenderLayer } from "@/types/particleBehaviors";
 
 export default class RenderSystem {
   private context: CanvasRenderingContext2D;
@@ -25,9 +26,12 @@ export default class RenderSystem {
 
   constructor(canvas: HTMLCanvasElement, imageManager: ImageManager) {
     this.context = canvas.getContext("2d")!;
-    this.context.imageSmoothingEnabled = false;
-
     this.imageManager = imageManager;
+    this.applySettings();
+  }
+
+  applySettings() {
+    this.context.imageSmoothingEnabled = false;
   }
 
   render(
@@ -48,31 +52,34 @@ export default class RenderSystem {
     this.context.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     this.renderGrid();
+    this.renderParticles(particles, "background");
     this.renderPlayer(player);
     this.renderEnemies(enemies);
-    this.renderParticles(particles);
+    this.renderParticles(particles, "foreground");
 
     if (debug) this.renderDebugOverlay(player, enemies);
   }
 
   renderPlayer(player: Player): void {
-    const playerImage = this.imageManager.get(player.data.imageName);
+    const isDying = player.animator.isCurrentLabel("death");
 
-    if (player.invincible) {
+    if (player.invincible && !isDying) {
       this.context.globalAlpha =
         FLASH_MIN_ALPHA + FLASH_ALPHA_RANGE * Math.abs(Math.sin(player.invincibilityTimer * FLASH_SPEED));
     }
 
-    if (playerImage) {
-      this.context.save();
-      if (player.flipHorizontal) {
-        this.context.translate(player.x + player.width, player.y);
-        this.context.scale(-1, 1);
-        this.context.drawImage(playerImage, 0, 0, player.width, player.height);
-      } else {
-        this.context.drawImage(playerImage, player.x, player.y, player.width, player.height);
-      }
-      this.context.restore();
+    const frame = player.animator.getCurrentFrame();
+    const spritesheet = frame?.spritesheet ? this.imageManager.get(frame.spritesheet) : null;
+
+    if (frame && spritesheet) {
+      const x = this._snap(player.x);
+      const y = this._snap(player.y);
+
+      this.context.drawImage(
+        spritesheet,
+        frame.sx, frame.sy, frame.sw, frame.sh,
+        x, y, player.width, player.height
+      );
     } else {
       // fallback
       this.context.fillStyle = player.data.color;
@@ -84,17 +91,27 @@ export default class RenderSystem {
     this.context.globalAlpha = 1;
   }
 
-  renderParticles(particles: Particle[]) {
+  renderParticles(particles: Particle[], layer: ParticleRenderLayer) {
     for (const particle of particles) {
-      if (!particle.active) continue;
-
-      const x = particle.x - particle.size / 2;
-      const y = particle.y - particle.size / 2;
+      if (!particle.active || particle.layer !== layer) continue;
 
       this.context.save();
-      this.context.fillStyle = particle.color;
       this.context.globalAlpha = particle.opacity;
-      this.context.fillRect(x, y, particle.size, particle.size);
+
+      switch (particle.shape) {
+        case "image": {
+          this._drawImageParticle(particle);
+          break;
+        }
+        case "circle": {
+          this._drawCircleShapeParticle(particle);
+          break;
+        }
+        default: {
+          this._drawRectangleShapeParticle(particle);
+        }
+      }
+
       this.context.restore();
     }
   }
@@ -103,21 +120,35 @@ export default class RenderSystem {
     for (const enemy of enemies) {
       if (!enemy.active) continue;
 
-      const enemyImage = this.imageManager.get(enemy.data.imageName);
+      const isDying = enemy.animator.isCurrentLabel("death");
 
-      if (enemy.invincible) {
+      if (enemy.invincible && !isDying) {
         this.context.globalAlpha =
           FLASH_MIN_ALPHA + FLASH_ALPHA_RANGE * Math.abs(Math.sin(enemy.invincibilityTimer * FLASH_SPEED));
       }
 
-      if (enemyImage) {
+      const frame = enemy.animator.getCurrentFrame();
+      const spritesheet = frame?.spritesheet ? this.imageManager.get(frame.spritesheet) : null;
+
+      if (frame && spritesheet) {
+        const x = this._snap(enemy.x);
+        const y = this._snap(enemy.y);
+
         this.context.save();
         if (enemy.flipHorizontal) {
-          this.context.translate(enemy.x + enemy.width, enemy.y);
+          this.context.translate(x + enemy.width, y);
           this.context.scale(-1, 1);
-          this.context.drawImage(enemyImage, 0, 0, enemy.width, enemy.height);
+          this.context.drawImage(
+            spritesheet,
+            frame.sx, frame.sy, frame.sw, frame.sh,
+            0, 0, enemy.width, enemy.height
+          );
         } else {
-          this.context.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height);
+          this.context.drawImage(
+            spritesheet,
+            frame.sx, frame.sy, frame.sw, frame.sh,
+            x, y, enemy.width, enemy.height
+          );
         }
         this.context.restore();
       } else {
@@ -128,7 +159,7 @@ export default class RenderSystem {
 
       this.context.globalAlpha = 1;
 
-      if (enemy.health < enemy.maxHealth) {
+      if (enemy.health < enemy.maxHealth && !isDying) {
         this.renderEnemyHealthBar(enemy);
       }
     }
@@ -137,8 +168,8 @@ export default class RenderSystem {
   renderEnemyHealthBar(enemy: Enemy): void {
     const ratio = enemy.health / enemy.maxHealth;
 
-    const x = enemy.x;
-    const y = enemy.y - HEALTHBAR_OFFSET - HEALTHBAR_HEIGHT;
+    const x = this._snap(enemy.x);
+    const y = this._snap(enemy.y - HEALTHBAR_OFFSET - HEALTHBAR_HEIGHT);
     const w = enemy.width;
 
     this.context.fillStyle = HEALTHBAR_BACKGROUND;
@@ -197,5 +228,36 @@ export default class RenderSystem {
     if (fill) this.context.fill();
 
     this.context.restore();
+  }
+
+  private _drawRectangleShapeParticle(particle: Particle) {
+    const x = particle.x - particle.size / 2;
+    const y = particle.y - particle.size / 2;
+    this.context.fillStyle = particle.color;
+    this.context.fillRect(x, y, particle.size, particle.size);
+  }
+
+  private _drawCircleShapeParticle(particle: Particle) {
+    this.context.fillStyle = particle.color;
+    this.context.beginPath();
+    this.context.arc(particle.x, particle.y, particle.size / 2, 0, Math.PI * 2);
+    this.context.fill();
+  }
+
+  private _drawImageParticle(particle: Particle) {
+    const asset = particle.cachedAssetKey ? this.imageManager.get(particle.cachedAssetKey) : null;
+
+    if (!asset) {
+      this._drawRectangleShapeParticle(particle);
+      return;
+    }
+
+    const x = this._snap(particle.x - particle.size / 2);
+    const y = this._snap(particle.y - particle.size / 2);
+    this.context.drawImage(asset, x, y, particle.size, particle.size);
+  }
+
+  private _snap(value: number) {
+    return Math.round(value);
   }
 }

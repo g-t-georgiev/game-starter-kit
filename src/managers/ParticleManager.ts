@@ -8,7 +8,8 @@ import ParticleBehaviorFactory from "@/entities/behaviors/particles/ParticleBeha
 
 export default class ParticleManager {
   private pools: ParticlePools;
-  private eventEmitter: EventEmitter;
+
+  public readonly activeParticlesBuffer: Particle[] = [];
 
   constructor(eventEmitter: EventEmitter) {
     const particleDataKeys = Object.keys(particleData) as ParticleType[];
@@ -23,8 +24,7 @@ export default class ParticleManager {
       return pool;
     }, {} as ParticlePools);
 
-    this.eventEmitter = eventEmitter;
-    this._attachEventListeners(this.eventEmitter);
+    this._attachEventListeners(eventEmitter);
   }
 
   private _attachEventListeners(eventEmitter: EventEmitter) {
@@ -94,11 +94,8 @@ export default class ParticleManager {
       particle.gravity.x = data.gravity.x;
       particle.gravity.y = data.gravity.y;
       particle.color = color;
-
-      if (!particle.behavior) {
-        const behavior = ParticleBehaviorFactory.create(data.behaviorType);
-        particle.behavior = behavior;
-      }
+      particle.behavior ??= ParticleBehaviorFactory.create(data.behaviorType);
+      particle.layer = data.layer ?? particle.layer;
 
       ParticleBehaviorFactory.init(particle.behavior, x, y);
     }
@@ -108,6 +105,9 @@ export default class ParticleManager {
     for (const pool of Object.values(this.pools)) {
       pool.updateAll(deltaTime)
     }
+
+    // Snapshot after all position updates and pool pruning are done
+    this.populateActiveEntitiesSnapshot();
   }
 
   reset(): void {
@@ -116,9 +116,15 @@ export default class ParticleManager {
     }
   }
 
-  *getActive() {
+  populateActiveEntitiesSnapshot(buffer: Particle[] = this.activeParticlesBuffer): void {
+    buffer.length = 0; // Clear without allocating new memory
+
+    // Direct array lookups are blazingly fast
     for (const pool of Object.values(this.pools)) {
-      yield* pool.getActive();
+      const active = pool.activeEntities;
+      for (let i = 0; i < active.length; i++) {
+        buffer.push(active[i]);
+      }
     }
   }
 }

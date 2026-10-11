@@ -3,8 +3,16 @@ import type Enemy from "@/entities/Enemy";
 import { SOUND_ASSETS_DIR, EVENTS } from "@/core/constants";
 import audioData from "@/data/audioData";
 
+interface SoundEntryData {
+  sound: HTMLAudioElement;
+  loaded: boolean;
+  channels: HTMLAudioElement[];
+}
+
+const MAX_CHANNELS_PER_SOUND = 4;
+
 export default class SoundManager {
-  private sounds: Map<string, { sound: HTMLAudioElement; loaded: boolean }> = new Map();
+  private sounds: Map<string, SoundEntryData> = new Map();
   private eventEmitter: EventEmitter;
 
   constructor(eventEmitter: EventEmitter) {
@@ -22,54 +30,59 @@ export default class SoundManager {
 
   load(name: string, path: string) {
     return new Promise<HTMLAudioElement | void>((resolve) => {
-      const sound = new Audio(path);
-      const asset = { sound, loaded: false };
+      const sound = new Audio();
+      const asset: SoundEntryData = { sound, loaded: false, channels: [] };
 
       this.sounds.set(name, asset);
 
       sound.addEventListener("loadeddata", () => {
         asset.loaded = true;
-
-        // console.log(`[DEV] Audio loading successful: ${name}`);
-
+        asset.channels.push(sound);
         resolve(sound);
       });
 
       sound.addEventListener("error", () => {
-        console.error(`Audio loading failed: ${name} (will skip)`);
-
+        console.warn(`Audio loading failed: ${name} (will skip)`);
         resolve();
       });
+
+      sound.src = path;
     });
   }
 
-  get(name: string) {
-    const soundAsset = this.sounds.get(name);
+  get(name: string): SoundEntryData | null {
+    const entry = this.sounds.get(name);
 
-    if (!soundAsset) {
-      // console.warn(`[DEV] Couldn't find sound asset ${name}. Try load it first or inspect if there's a problem with loading.`);
-
+    if (!entry?.loaded) {
+      console.warn(`Couldn't find sound asset ${name}.`);
       return null;
     }
 
-    if (soundAsset.loaded) return soundAsset.sound;
-
-    // console.warn(`[DEV] Sound asset ${name} is still loading. Will use a fallback for the moment.`);
-
-    return null;
+    return entry;
   }
 
   async play(name: string) {
     try {
-      const sound = this.get(name);
+      const entry = this.get(name);
 
-      if (!sound) return;
+      if (!entry) return;
+
+      const { sound: s, channels } = entry;
+      let sound = channels.find((s) => s.paused);
+      if (!sound) {
+        if (channels.length < MAX_CHANNELS_PER_SOUND) {
+          sound = s.cloneNode() as HTMLAudioElement;
+          channels.push(sound);
+        } else {
+          sound = channels.shift()!;
+          channels.push(sound);
+        }
+      }
 
       sound.currentTime = 0;
-
       await sound.play();
     } catch (err) {
-      console.warn(`Couldn't play sound ${name}. Error message:`, err);
+      console.warn(`Couldn't play sound ${name}. Error message:\n`, err);
     }
   }
 

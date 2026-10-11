@@ -18,17 +18,17 @@ export default class SeekBehavior<
   }
 
   update(source: TSource, deltaTime: number, target: TTarget) {
-    // Calculate distance to player
+    // Calculate distance to target
     const dx = target.x + target.width / 2 - (source.x + source.width / 2);
     const dy = target.y + target.height / 2 - (source.y + source.height / 2);
     const dist = Math.sqrt(dx ** 2 + dy ** 2);
 
     if (dist > this.options.stoppingDistance) {
-      const normalizedDx = dx / dist;
-      const normalizedDy = dy / dist;
+      const nx = dx / dist;
+      const ny = dy / dist;
 
-      source.x += normalizedDx * source.speed * deltaTime;
-      source.y += normalizedDy * source.speed * deltaTime;
+      source.x += nx * source.speed * deltaTime;
+      source.y += ny * source.speed * deltaTime;
     }
   }
 }

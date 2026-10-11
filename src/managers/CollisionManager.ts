@@ -13,12 +13,16 @@ export default class CollisionManager {
     this.collisionSystem = collisionSystem;
   }
 
-  update(player: Player, enemies: Iterable<Enemy>) {
+  update(player: Player, enemies: Enemy[]) {
     this.checkPlayerEnemyCollision(player, enemies);
   }
 
-  checkPlayerEnemyCollision(player: Player, enemies: Iterable<Enemy>) {
+  checkPlayerEnemyCollision(player: Player, enemies: Enemy[]) {
     for (const enemy of enemies) {
+      if (!enemy.active) continue;
+
+      if (enemy.animator.isCurrentLabel("death")) continue;
+
       if (this.collisionSystem.checkCircleCircle(player, enemy)) {
         const dx = player.centerX - enemy.centerX;
         const dy = player.centerY - enemy.centerY;
@@ -30,13 +34,18 @@ export default class CollisionManager {
         const enemyDamage = enemy.takeDamage(player.collisionDamage);
 
         if (enemyDamage) {
+          if (enemy.isDead()) {
+            this.eventEmitter.emit(EVENTS.ENEMY_DIED, enemy);
+            return;
+          }
+
           this.eventEmitter.emit(EVENTS.ENEMY_DAMAGED, enemy);
 
-          if (enemy.isDead()) {
-            enemy.active = false;
-            this.eventEmitter.emit(EVENTS.ENEMY_DIED, enemy);
-          } else if (!enemy.data.pushbackImmune) {
-            enemy.applyPushback(-nx, -ny, enemy.pushbackForce);
+          const resistance = enemy.data.knockbackResistance || 0;
+          const appliedForce = player.knockbackPower * (1 - resistance);
+
+          if (appliedForce > 0) {
+            enemy.applyKnockback(-nx, -ny, appliedForce);
           }
         }
 
@@ -47,12 +56,13 @@ export default class CollisionManager {
 
           if (player.isDead()) {
             this.eventEmitter.emit(EVENTS.PLAYER_DIED);
-
             return;
           }
 
-          if (enemy.data.pushbackImmune) {
-            player.applyPushback(nx, ny, player.pushbackForce);
+          const enemyResistance = enemy.data.knockbackResistance || 0;
+
+          if (enemyResistance >= 0.8) {
+            player.applyKnockback(nx, ny, player.knockbackPower);
           }
         }
       }

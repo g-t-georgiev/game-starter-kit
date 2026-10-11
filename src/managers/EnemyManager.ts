@@ -10,6 +10,7 @@ type EnemyPools = Record<EnemyType, ObjectPooler<Enemy>>;
 
 export default class EnemyManager {
   private pools: EnemyPools;
+  public readonly activeEnemiesBuffer: Enemy[] = [];
 
   constructor() {
     const enemyDataKeys = Object.keys(enemyData) as EnemyType[];
@@ -44,21 +45,30 @@ export default class EnemyManager {
     return enemy;
   }
 
-  *getActive() {
-    for (const pool of Object.values(this.pools)) {
-      yield* pool.getActive();
-    }
-  }
-
   update(deltaTime: number, player: Player): void {
     for (const pool of Object.values(this.pools)) {
       pool.updateAll(deltaTime, player)
     }
+
+    // Snapshot after all position updates and pool pruning are done
+    this.populateActiveEntitiesSnapshot();
   }
 
   reset(): void {
     for (const pool of Object.values(this.pools)) {
       pool.releaseAll();
+    }
+  }
+
+  populateActiveEntitiesSnapshot(buffer: Enemy[] = this.activeEnemiesBuffer): void {
+    buffer.length = 0; // Clear without allocating new memory
+
+    // Direct array lookups are blazingly fast
+    for (const pool of Object.values(this.pools)) {
+      const active = pool.activeEntities;
+      for (let i = 0; i < active.length; i++) {
+        buffer.push(active[i]);
+      }
     }
   }
 }

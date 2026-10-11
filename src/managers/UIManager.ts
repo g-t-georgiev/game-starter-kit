@@ -1,10 +1,14 @@
 import type EventEmitter from "@/core/EventEmitter";
 import { EVENTS, GAME_SOUNDS } from "@/core/constants";
+import missionData from "@/data/missionData";
+import controlsData from "@/data/controlsData";
 
 const UI_ELEMS = Object.freeze({
   HUD: "hud",
   TIMER: "timer",
   HEALTHBAR: "healthBarFill",
+  MISSIONBRIEFING: "missionBriefing",
+  KILLCOUNTER: "killCounter",
   MAIN_MENU: "mainMenu",
   PAUSE_MENU: "pauseMenu",
   GAME_OVER_MENU: "gameOverMenu",
@@ -12,19 +16,29 @@ const UI_ELEMS = Object.freeze({
   LOADING_SCREEN: "loadingScreen",
 });
 
-
-type HudTypes = Pick<typeof UI_ELEMS, "HUD" | "HEALTHBAR" | "TIMER">;
+type HudTypes = Pick<
+  typeof UI_ELEMS,
+  | "HUD"
+  | "HEALTHBAR"
+  | "TIMER"
+  | "MISSIONBRIEFING"
+  | "KILLCOUNTER"
+>;
 type PanelTypes = Omit<typeof UI_ELEMS, keyof HudTypes>;
-type PanelType = keyof PanelTypes;
+
+export type UIElementId = (typeof UI_ELEMS)[keyof typeof UI_ELEMS];
+export type UIPanelId = PanelTypes[keyof PanelTypes];
 
 const {
   HUD,
   TIMER,
   HEALTHBAR,
+  KILLCOUNTER,
+  MISSIONBRIEFING,
   ...panels
 } = UI_ELEMS;
 
-const PANELS_ID_MAP = new Map(Object.entries(panels)) as Map<PanelType, PanelTypes[PanelType]>;
+const PANELS_ID_MAP = new Map(Object.entries(panels)) as Map<keyof PanelTypes, UIPanelId>;
 
 const BUTTON_ACTIONS = Object.freeze({
   START: "start",
@@ -38,7 +52,7 @@ type ButtonActionId = ButtonActions[keyof ButtonActions];
 export default class UIManager {
   private eventEmitter: EventEmitter;
   private uiElementsMap: Map<string, HTMLElement> = new Map();
-  private buttonActionsMap: Map<ButtonActionId, (() => unknown)> = new Map();
+  private buttonActionsMap: Map<ButtonActionId, () => unknown> = new Map();
 
   constructor(eventEmitter: EventEmitter) {
     this.eventEmitter = eventEmitter;
@@ -47,93 +61,101 @@ export default class UIManager {
     this.buttonActionsMap.set(BUTTON_ACTIONS.RESUME, () => this.eventEmitter.emit(EVENTS.GAME_RESUME));
     this.buttonActionsMap.set(BUTTON_ACTIONS.QUIT, () => this.eventEmitter.emit(EVENTS.GAME_MENU));
 
-    this._addElementToCache(TIMER);
-    this._attachEventListeners();
+    this.addElementToCache(TIMER);
+    this.addElementToCache(HEALTHBAR);
+    this.addElementToCache(KILLCOUNTER);
+    this.addElementToCache(MISSIONBRIEFING);
+
+    this.renderControlsList();
+    this.attachEventListeners();
   }
 
-  protected _onButtonHover(_e: PointerEvent | MouseEvent | TouchEvent, _button: HTMLElement): void {
+  private onButtonHover(): void {
     this.eventEmitter.emit(EVENTS.SOUND_PLAY, GAME_SOUNDS.ButtonHover);
   }
 
-  protected _onButtonClick(_e: PointerEvent | MouseEvent | TouchEvent, button: HTMLElement): void {
+  private onButtonClick(button: HTMLElement): void {
     this.eventEmitter.emit(EVENTS.SOUND_PLAY, GAME_SOUNDS.ButtonClick);
     const action = button.dataset.action as ButtonActionId;
     this.buttonActionsMap.get(action)?.();
   }
 
   /**
-   * Protected method that returns an already cached element reference if it exists,
+   * Returns an already cached element reference if it exists,
    * or tries to query the DOM for that reference, caches it and returns if found.
    *
    * Otherwise throws a warning in the dev console, saying the element wasn't found.
    */
-  protected _addElementToCache(name: string, ref?: HTMLElement): HTMLElement | void {
+  private addElementToCache(name: string, ref?: HTMLElement): HTMLElement | undefined {
     const key = `#${name}`;
     const toCache = ref?.isConnected ? ref : document.querySelector<HTMLElement>(key);
 
     if (!toCache) {
       console.warn(`Couldn't find element with ID selector "${name}".`);
-
       return;
     }
 
     this.uiElementsMap.set(name, toCache);
-
     return toCache;
   }
 
-  _attachEventListeners() {
-    document.querySelectorAll("button").forEach((button) => {
-      button.addEventListener("click", (e) => this._onButtonClick(e, button));
-      button.addEventListener("mouseenter", (e) => this._onButtonHover(e, button));
+  private attachEventListeners(): void {
+    const container = document.getElementById("gameContainer") ?? document.body;
+
+    container.addEventListener("click", (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLElement>("button");
+      if (button) this.onButtonClick(button);
     });
+
+    container.addEventListener("mouseover", (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLElement>("button");
+      if (button && e.relatedTarget && !button.contains(e.relatedTarget as Node)) {
+        this.onButtonHover();
+      }
+    });
+
+    this.eventEmitter.on(EVENTS.ENEMY_KILLED_COUNT, (count) => this.updateKillCounter(count));
   }
 
-  getElement(name: string) {
+  getElement(name: UIElementId | string): HTMLElement | undefined {
     const element = this.uiElementsMap.get(name);
 
     if (!element?.isConnected) {
-      return this._addElementToCache(name);
+      return this.addElementToCache(name);
     }
 
     return element;
   }
 
   hideAllPanels(): void {
-    PANELS_ID_MAP.forEach((name) => {
-      const panel = this.getElement(name);
-
-      panel?.classList.remove("active");
-    });
+    PANELS_ID_MAP.forEach((name) => this.hidePanel(name));
   }
 
-  showPanel(name: string): void {
+  showPanel(name: UIPanelId): void {
     this.hideAllPanels();
-
     const toShow = this.getElement(name);
-
     toShow?.classList.add("active");
   }
 
-  /**
-   * Show or hide timer.
-   *
-   * Can be forcefully shown/hidden or depending on the state of
-   * the existence/absence of "active" CSS class parameter, by default.
-   */
+  hidePanel(name: UIPanelId): void {
+    const toHide = this.getElement(name);
+    toHide?.classList.remove("active");
+  }
+
   toggleHud(force?: boolean): void {
     const hud = this.getElement(HUD);
-
     if (!hud) return;
 
     const willForceToggle = force ?? !hud.classList.contains("active");
-
     hud.classList.toggle("active", willForceToggle);
+
+    if (!willForceToggle) {
+      this.hideMissionBriefing();
+    }
   }
 
   updateTimer(time: number): void {
     const timerElement = this.getElement(TIMER);
-
     if (!timerElement) return;
 
     const hours = Math.floor(time / 3600);
@@ -144,19 +166,17 @@ export default class UIManager {
     const minutesText = `${minutes}`.padStart(2, "0");
     const secondsText = `${seconds}`.padStart(2, "0");
 
-    const displayTime = hours > 0
-      ? `${hoursText}:${minutesText}:${secondsText}`
-      : `${minutesText}:${secondsText}`;
-
-    timerElement.textContent = displayTime;
+    timerElement.textContent =
+      hours > 0
+        ? `${hoursText}:${minutesText}:${secondsText}`
+        : `${minutesText}:${secondsText}`;
   }
 
   updateHealthBar(health: number, maxHealth: number): void {
     const healthBar = this.getElement(HEALTHBAR);
-
     if (!healthBar) return;
 
-    const ratio = Math.max(0, health / maxHealth);
+    const ratio = Math.min(1, Math.max(0, health / maxHealth));
     healthBar.style.setProperty("--health-pct", String(ratio));
   }
 
@@ -166,5 +186,36 @@ export default class UIManager {
 
   showMissionCompletedMenu(): void {
     this.showPanel(UI_ELEMS.MISSION_COMPLETED_MENU);
+  }
+
+  showMissionBriefing(): void {
+    const missionBriefing = this.getElement(MISSIONBRIEFING);
+    if (!missionBriefing) return;
+    missionBriefing.textContent = this.buildMissionBriefingText();
+    missionBriefing.classList.add("visible");
+  }
+
+  hideMissionBriefing(): void {
+    const missionBriefing = this.getElement(MISSIONBRIEFING);
+    if (!missionBriefing) return;
+    missionBriefing?.classList.remove("visible");
+  }
+
+  buildMissionBriefingText(): string {
+    return `Destroy ${missionData.killCount} enemies or survive ${missionData.surviveTime} seconds.`;
+  }
+
+  updateKillCounter(count: number): void {
+    const killCounter = this.getElement(KILLCOUNTER);
+    if (!killCounter) return;
+
+    killCounter.textContent = `${count} / ${missionData.killCount}`;
+  }
+
+  private renderControlsList() {
+    const html = controlsData.map((c) => `<div>${c.key} - ${c.label}</div>`).join("");
+    document.querySelectorAll("[data-controls-list]").forEach((el) => {
+      el.innerHTML = html;
+    });
   }
 }

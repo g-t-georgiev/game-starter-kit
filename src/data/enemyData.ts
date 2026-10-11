@@ -5,26 +5,24 @@ export const EnemyTypes: TEnemyTypes = {
   Seeker: "seeker",
 };
 
-export default {
+const enemiesData: EnemiesConfig = {
   drifter: {
     // Dimensions
-    width: 48,
+    width: 64,
     height: 48,
     // Statistics
-    speed: 80,
-    maxHealth: 8,
-    damage: 1,
+    speed: 30,
+    maxHealth: 15,
+    damage: 2,
     // Collision
     collisionRadius: 22,
     invincibilityDuration: 0.6,
-    pushbackForce: 0,
-    pushbackImmune: true,
+    knockbackPower: 0,
+    knockbackResistance: 1.0,
     // Behavior
     behaviorType: "drift",
     // Visual
     color: "#008cff",
-    imageName: "enemy_drifter",
-    imagePath: "enemy_drifter.png",
     // Sounds
     soundEffects: {
       hit: "enemy_drifter_hit",
@@ -40,26 +38,39 @@ export default {
         count: 25,
       },
     },
+    animations: {
+      spritesheets: [
+        "enemy_drifter_spritesheet0",
+        "enemy_drifter_spritesheet1"
+      ],
+      frameWidth: 64,
+      frameHeight: 48,
+      initialState: "idle",
+      states: {
+        idle: { row: 0, frameCount: 8, frameInterval: 0.15, startFrame: 0, loop: true },
+        move: { row: 1, frameCount: 6, frameInterval: 0.15, startFrame: 0, loop: true },
+        hit: { row: 2, frameCount: 6, frameInterval: 0.15, startFrame: 0, loop: false, locked: true, next: "idle" },
+        death: { row: 3, frameCount: 8, frameInterval: 0.1, startFrame: 0, loop: false, locked: true },
+      }
+    }
   } as const,
   seeker: {
     // Dimensions
-    width: 38,
-    height: 25,
+    width: 64,
+    height: 64,
     // Statistics
-    speed: 120,
-    maxHealth: 5,
-    damage: 2,
+    speed: 60,
+    maxHealth: 10,
+    damage: 1,
     // Collision
     collisionRadius: 16,
     invincibilityDuration: 0.6,
-    pushbackForce: 580,
-    pushbackImmune: false,
+    knockbackPower: 580,
+    knockbackResistance: 0.0,
     // Behavior
     behaviorType: "seek",
     // Visual
     color: "#ff0000",
-    imageName: "enemy_seeker",
-    imagePath: "enemy_seeker.png",
     // Sounds
     soundEffects: {
       hit: "enemy_seeker_hit",
@@ -75,5 +86,21 @@ export default {
         count: 17,
       },
     },
+    animations: {
+      spritesheets: [
+        "enemy_seeker_spritesheet0",
+        "enemy_seeker_spritesheet1"
+      ],
+      frameWidth: 64,
+      frameHeight: 64,
+      initialState: "move",
+      states: {
+        move: { row: 0, frameCount: 9, frameInterval: 0.15, startFrame: 0, loop: true },
+        hit: { row: 1, frameCount: 7, frameInterval: 0.15, startFrame: 0, loop: false, locked: true, next: "move" },
+        death: { row: 2, frameCount: 11, frameInterval: 0.1, startFrame: 0, loop: false, locked: true },
+      }
+    }
   } as const,
-} satisfies EnemiesConfig;
+} as const;
+
+export default enemiesData;

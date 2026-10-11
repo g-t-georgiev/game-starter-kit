@@ -3,12 +3,30 @@ import type ObjectPooler from "@/utils/ObjectPooler";
 import type Particle from "@/entities/Particle";
 import type { RadialBehavior, ImplosionBehavior } from "@/entities/behaviors/particles";
 
+export type ParticleRenderLayer = "background" | "foreground";
+
 export type ParticleType = "sparks" | "smoke" | "implosion";
 export type ParticlePools = Record<ParticleType, ObjectPooler<Particle>>;
 
 export type ParticleBehaviorType = "radial" | "implosion";
 
-export interface ParticleConfig {
+export type ParticleShapeType = "rectangle" | "circle" | "image";
+
+interface BaseParticleShapeConfig<Shape extends ParticleShapeType> {
+  shape: Shape;
+}
+type CircleParticleShapeConfig = BaseParticleShapeConfig<"circle">;
+type RectangleParticleShapeConfig = BaseParticleShapeConfig<"rectangle">;
+type ImageParticleShapeConfig = BaseParticleShapeConfig<"image"> & {
+  imageName: string;
+}
+
+export type ParticleShapeConfig =
+  | CircleParticleShapeConfig
+  | RectangleParticleShapeConfig
+  | ImageParticleShapeConfig;
+
+export type ParticleConfig = {
   count: number;
   color: string;
   speed: number;
@@ -19,7 +37,8 @@ export interface ParticleConfig {
   shrink: boolean;
   gravity: Position;
   behaviorType: ParticleBehaviorType;
-};
+  layer?: ParticleRenderLayer;
+} & ParticleShapeConfig;
 
 export type ParticlesConfig = {
   [Type in ParticleType]: ParticleConfig;
@@ -29,17 +48,17 @@ export type ParticlesConfig = {
 export interface ParticleBehaviorMap {
   radial: RadialBehavior;
   implosion: ImplosionBehavior;
-};
+}
 
 /** Particle behavior "type" to `init` method arguments map. */
 export interface ParticleBehaviorInitMap {
   radial: [];
   implosion: [originX: number, originY: number];
-};
+}
 
 export type ParticleBehaviorRegistry = {
   [K in ParticleBehaviorType]: () => ParticleBehaviorMap[K];
-};
+}
 
 /** Particle behavior type constraint for the `Particle` class' `behavior` field. */
 export type ParticleBehavior = ParticleBehaviorMap[keyof ParticleBehaviorMap];
@@ -53,4 +72,4 @@ export interface IParticleBehavior<T extends ParticleBehaviorType> {
   readonly type: T;
   init?(...args: ParticleBehaviorInitMap[T]): void;
   update(particle: Particle, deltaTime: number): void;
-};
+}

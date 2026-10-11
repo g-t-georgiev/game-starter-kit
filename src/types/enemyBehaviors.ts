@@ -24,16 +24,18 @@ export interface SeekBehaviorConfig {
 };
 
 export interface DriftBehaviorConfig {
-  /** Move towards player position snaptshot duration. */
+  /** Moving phase duration. */
   moveDuration: number;
+  /** Idle phase min duration. */
   idleDurationMin: number;
+  /** Idle phase max duration. */
   idleDurationMax: number;
   /** Elapsed time in seconds used to signal a phase change. */
   phaseDuration: number;
 };
 
 export interface RandomDriftBehaviorConfig {
-  /** Elapsed time in seconds used to signal a change direction */
+  /** The elapsed time in seconds used to signal a change of direction. */
   changeInterval: number;
 }
 

@@ -1,6 +1,6 @@
 import type { ParticlesConfig } from "@/types/particleBehaviors";
 
-export default {
+const particlesData: ParticlesConfig = {
   sparks: {
     count: 12,
     color: "#ffffff",
@@ -12,6 +12,8 @@ export default {
     shrink: true,
     gravity: { x: 0, y: 250 },
     behaviorType: "radial",
+    shape: "rectangle",
+    layer: "background",
   },
   smoke: {
     count: 12,
@@ -24,17 +26,24 @@ export default {
     shrink: false,
     gravity: { x: 0, y: -250 },
     behaviorType: "radial",
+    shape: "circle",
+    layer: "background",
   },
   implosion: {
     count: 40,
     color: "#ffffff",
     speed: 600,
     lifetime: 2.0,
-    size: 10,
+    size: 17,
     opacity: 1,
     fade: false,
     shrink: true,
     gravity: { x: 0, y: 0 },
     behaviorType: "implosion",
+    shape: "image",
+    imageName: "particle_star",
+    layer: "foreground",
   }
-} as const satisfies ParticlesConfig;
+} as const;
+
+export default particlesData;
